@@ -1,16 +1,23 @@
 {
   "name": "youtubeoauth",
-  "version": "1.0.3",
+  "version": "1.0.9",
+  "engines": {
+    "node": "6.9.1",
+    "npm": "3.10.8"
+  },
   "description": "OAuth Server for authenticating users to access the youTube api",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
     "compile": "tsc",
-    "prepublish": "npm run clean && npm run compile",
+    "typings": "typings install",
+    "postinstall": "npm run clean && npm run typings && npm run compile",
     "clean": "rimraf *.js",
-    "push": "git push --tags origin master",
+    "push:git": "git push --tags origin master",
+    "push:heroku": "git push --tags heroku master",
     "version:patch": "npm version patch",
-    "postversion:patch": "npm run push"
+    "postversion:patch": "npm run push:git",
+    "deploy": "npm run clean && npm run compile && npm run version:patch && npm run push:heroku"
   },
   "repository": {
     "type": "git",
@@ -28,7 +35,9 @@
   },
   "homepage": "https://github.com/Roaders/YouTubeOAuth#readme",
   "dependencies": {
+    "node-env-file": "^0.1.8",
     "rimraf": "^2.5.4",
-    "typescript": "^2.0.8"
+    "typescript": "1.8.10",
+    "typings": "^2.0.0"
   }
 }
