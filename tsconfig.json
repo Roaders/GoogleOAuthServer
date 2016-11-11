@@ -1,7 +1,8 @@
 {
     "compilerOptions": {
         "target": "es5",
-        "module": "commonjs"
+        "module": "commonjs",
+		"diagnostics": true
     },
     "compileOnSave": true,
     "buildOnSave": false,

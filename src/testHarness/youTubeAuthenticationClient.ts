@@ -12,7 +12,7 @@ namespace PricklyThistle.Auth.YouTube.Client {
 
 		requestTokens(){
 
-			Rx.Observable.fromPromise<IAuthUrl>( $.getJSON( "/api" ) )
+			Rx.Observable.fromPromise<IAuthUrl>( $.getJSON( "/api/tokenRequestUrl" ) )
 				.subscribe( data => {
 					console.log(`url loaded: ${data.authUrl}`);
 

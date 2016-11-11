@@ -10,7 +10,7 @@ export class YouTubeAuthenticationServer{
 
 		let authUrl = YouTubeAuthenticationServer.baseUrl;
 
-		const redirectUri = "http://localhost:8080/";
+		const redirectUri = "http://localhost:8080";
 		const scope = "https://www.googleapis.com/auth/youtube.readonly";
 
 		authUrl += "?client_id=" + process.env.CLIENT_ID;
