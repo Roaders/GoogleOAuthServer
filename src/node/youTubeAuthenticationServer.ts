@@ -1,23 +1,95 @@
 
 import contracts = require("../common/contracts");
+import express = require('express');
+import Rx = require('rx');
+import RxNode = require('rx-node');
+import http = require('http');
+import https = require('https');
+import url = require('url');
+
 import IAuthUrl = contracts.IAuthUrl;
+import IAuthTokens = contracts.IAuthTokens;
 
 export class YouTubeAuthenticationServer{
 
-	static baseUrl = "https://accounts.google.com/o/oauth2/auth";
+	static baseUrl = "https://accounts.google.com/o/oauth2/";
 
-	getTokenRequestUrl(): IAuthUrl {
+	static tokenExchangePath = "/api/exchangeTokens/code/";
 
-		let authUrl = YouTubeAuthenticationServer.baseUrl;
+	handleRequest(request: express.Request): Rx.Observable<string>{
+
+
+		var response: Rx.Observable<any>;
+
+		if(request.url === "/api/tokenRequestUrl"){
+			response = this.getTokenRequestUrl();
+		}
+		else if(request.url.indexOf(YouTubeAuthenticationServer.tokenExchangePath) === 0){
+			response = this.exchangeTokens(request.url.substr(YouTubeAuthenticationServer.tokenExchangePath.length));
+		}
+
+		return response.map( data => JSON.stringify(data));
+	}
+
+	private getTokenRequestUrl(): Rx.Observable<IAuthUrl> {
+
+		let url = YouTubeAuthenticationServer.baseUrl + "auth";
 
 		const redirectUri = "http://localhost:8080";
 		const scope = "https://www.googleapis.com/auth/youtube.readonly";
 
-		authUrl += "?client_id=" + process.env.CLIENT_ID;
-		authUrl += "&response_type=code";
-		authUrl += "&redirect_uri=" + redirectUri;
-		authUrl += "&scope=" + scope;
+		url += "?client_id=" + encodeURIComponent(process.env.CLIENT_ID);
+		url += "&redirect_uri=" + encodeURIComponent(redirectUri);
+		url += "&scope=" + encodeURIComponent(scope);
+		url += "&response_type=code";
 
-		return {authUrl: authUrl};
+		return Rx.Observable.just({authUrl: url});
+	}
+
+	private exchangeTokens(code: string): Rx.Observable<IAuthTokens>{
+		code = decodeURIComponent(code);
+
+		const redirectUri = "http://localhost:8080";
+
+		let url = YouTubeAuthenticationServer.baseUrl + "token";
+
+		var postData= "code=" + encodeURIComponent(code);
+		postData += "&redirect_uri=" + encodeURIComponent(redirectUri);
+		postData += "&client_id=" + encodeURIComponent(process.env.CLIENT_ID);
+		postData += "&client_secret=" + encodeURIComponent(process.env.CLIENT_SECRET);
+		postData += "&grant_type=authorization_code";
+
+		return this.makePostRequest<IAuthTokens>(url,postData);
+	}
+
+	private makePostRequest<T>(targetUrl:string, data: string): Rx.Observable<T>{
+
+		var urlObject = url.parse(targetUrl);
+
+		var options: http.RequestOptions = {
+			hostname: urlObject.hostname,
+			port: Number(urlObject.port),
+			path: urlObject.path,
+			protocol: "https:",
+			method: "POST",
+			headers: {
+				"Content-Type": "application/x-www-form-urlencoded"
+			}
+		};
+
+		const request = https.request(options);
+
+		const returnObservable = Rx.Observable.fromEvent(<any>request, "response")
+			.take(1)
+			.flatMap( response => RxNode.fromReadableStream(<any>response))
+			.toArray()
+			.map(function(allData){
+				return JSON.parse(allData.join("")) as T;
+			});
+
+		request.write(data);
+		request.end();
+
+		return returnObservable;
 	}
 }

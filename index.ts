@@ -3,7 +3,6 @@
 
 var packageJson = require("./package.json");
 var env = require('node-env-file');
-import http = require('http');
 import fs = require('fs');
 import path = require('path');
 import express = require('express');
@@ -19,9 +18,15 @@ var app = express();
 
 app.use(express.static('src/testHarness'));
 
-app.get( "/api/tokenRequestUrl", (req: express.Request, res: express.Response) => {
-	console.log(`Api request: ${req.url}`);
-	res.send(JSON.stringify(authServer.getTokenRequestUrl()));
+app.get( "/api/*", (req: express.Request, res: express.Response) => {
+
+	authServer.handleRequest(req)
+		.subscribe(
+			result => {
+				res.send(result);
+			},
+			error => console.log(`Error: ${error}`)
+		);
 });
 
 app.get( "/version", (req, res) => {
