@@ -12,6 +12,6 @@
     },
 	"files": [
 		"index.ts",
-		"src/testHarness/youTubeAuthenticationClient.ts"
+		"src/browser/youTubeAuthenticationClient.ts"
 	]
 }

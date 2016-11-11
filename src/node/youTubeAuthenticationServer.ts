@@ -17,8 +17,10 @@ export class YouTubeAuthenticationServer{
 	static tokenRequestUrlRegularExpression = /\/api\/tokenRequestUrl\/redirect\/([^\/?&]+)/;
 	static tokenExchangeRegularExpression = /\/api\/exchangeTokens\/code\/([^\/]+)\/redirect\/([^\/?&]+)/;
 
+	static scopes: string = "https://www.googleapis.com/auth/youtube https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/youtube.force-ssl";
+
 	handleRequest(request: express.Request): Rx.Observable<string>{
-		var response: Rx.Observable<any>;
+		let response: Rx.Observable<any>;
 
 		if(YouTubeAuthenticationServer.tokenRequestUrlRegularExpression.test(request.url)){
 			response = this.getTokenRequestUrl(request.url);
@@ -36,26 +38,21 @@ export class YouTubeAuthenticationServer{
 	}
 
 	private getTokenRequestUrl(requestUrl: string): Rx.Observable<IAuthUrl> {
-
 		const urlMatches = YouTubeAuthenticationServer.tokenRequestUrlRegularExpression.exec(requestUrl);
+		const redirectUri = decodeURIComponent(urlMatches[1]);
 
 		let url = YouTubeAuthenticationServer.baseUrl + "auth";
 
-		const redirectUri = decodeURIComponent(urlMatches[1]);
-		const scope = "https://www.googleapis.com/auth/youtube.readonly";
-
 		url += "?client_id=" + encodeURIComponent(process.env.CLIENT_ID);
 		url += "&redirect_uri=" + encodeURIComponent(redirectUri);
-		url += "&scope=" + encodeURIComponent(scope);
+		url += "&scope=" + encodeURIComponent(YouTubeAuthenticationServer.scopes);
 		url += "&response_type=code";
 
 		return Rx.Observable.just({authUrl: url});
 	}
 
 	private exchangeTokens(requestUrl: string): Rx.Observable<IAuthTokens>{
-
 		const urlMatches = YouTubeAuthenticationServer.tokenExchangeRegularExpression.exec(requestUrl);
-
 		const code = decodeURIComponent(urlMatches[1]);
 		const redirectUri = decodeURIComponent(urlMatches[2]);
 
@@ -71,7 +68,6 @@ export class YouTubeAuthenticationServer{
 	}
 
 	private makePostRequest<T>(targetUrl:string, data: string): Rx.Observable<T>{
-
 		var urlObject = url.parse(targetUrl);
 
 		var options: http.RequestOptions = {
@@ -85,19 +81,20 @@ export class YouTubeAuthenticationServer{
 			}
 		};
 
-		const request = https.request(options);
+		return Rx.Observable.defer(() => {
+			const request = https.request(options);
+			const Observable = Rx.Observable.fromEvent(<any>request, "response")
+				.take(1);
 
-		const returnObservable = Rx.Observable.fromEvent(<any>request, "response")
-			.take(1)
+				request.write(data);
+				request.end();
+
+			return Observable;
+			})
 			.flatMap( response => RxNode.fromReadableStream(<any>response))
 			.toArray()
 			.map(function(allData){
 				return JSON.parse(allData.join("")) as T;
 			});
-
-		request.write(data);
-		request.end();
-
-		return returnObservable;
 	}
 }

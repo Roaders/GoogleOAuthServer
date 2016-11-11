@@ -17,6 +17,7 @@ const authServer = new youTubeAuthServer.YouTubeAuthenticationServer();
 var app = express();
 
 app.use(express.static('src/testHarness'));
+app.use('/browser', express.static('src/browser'))
 
 app.get( "/api/*", (req: express.Request, res: express.Response) => {
 
