@@ -9,6 +9,7 @@
         "rewriteTsconfig": true
     },
 	"files": [
-		"index.ts"
+		"index.ts",
+		"testHarness/src/testHarness.ts"
 	]
 }
