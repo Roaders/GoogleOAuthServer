@@ -37,6 +37,7 @@
   "dependencies": {
     "node-env-file": "^0.1.8",
     "rimraf": "^2.5.4",
+    "rx": "^4.1.0",
     "typescript": "1.8.10",
     "typings": "^2.0.0"
   }

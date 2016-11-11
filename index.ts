@@ -6,7 +6,8 @@ var http = require('http');
 var fs = require('fs');
 var path = require('path');
 var env = require('node-env-file');
-var package = require("./package.json");
+var packageJson = require("./package.json");
+import youTubeAuthServer = require("./src/node/youTubeAuthenticationServer");
 
 if (fs.existsSync(__dirname + '/devEnvironment.env' )) {
 	env(__dirname + '/devEnvironment.env')
@@ -37,9 +38,14 @@ function getMimeType(filePath: string): string{
 	return contentType;
 }
 
-function handleError(error, response){
-	response.writeHead(500);
-	response.end('Sorry, check with the site admin for error: '+error.code+' ..\n');
+function handleError(error, response, filePath){
+	if(error.code == 'ENOENT'){
+		response.writeHead(404);
+		response.end(`Copuld not find file: ${filePath}`);
+	} else {
+		response.writeHead(500);
+		response.end('Sorry, check with the site admin for error: '+error.code+' ..\n');
+	}
 }
 
 function serveFile(requestUrl: string, response){
@@ -47,7 +53,7 @@ function serveFile(requestUrl: string, response){
 	var filePath = '.' + requestUrl;
     if (filePath === './')
 	{
-        filePath = './testHarness/index.html';
+        filePath = './src/testHarness/index.html';
 	}
 
 	const contentType = getMimeType(filePath);
@@ -56,7 +62,7 @@ function serveFile(requestUrl: string, response){
 
 		if (error) {
 			console.log(`Error serving ${filePath}: ${error}`);
-			handleError(error, response);
+			handleError(error, response, filePath);
 		}
 		else {
 			response.writeHead(200, { 'Content-Type': contentType });
@@ -65,12 +71,20 @@ function serveFile(requestUrl: string, response){
 	});
 }
 
-var server = http.createServer((request, response) => {
+const authServer = new youTubeAuthServer.YouTubeAuthenticationServer();
+
+const server = http.createServer((request, response) => {
 
 	switch(request.url){
+
+		case "/api":
+			response.writeHead(200, {"Content-Type": "application/json"});
+			response.end(JSON.stringify(authServer.getTokenRequestUrl()));
+			break;
+
 		case "/version":
 			response.writeHead(200, {"Content-Type": "text/plain"});
-			response.end(`Server version is ${package.version}`);
+			response.end(`Server version is ${packageJson.version}`);
 			break;
 
 		default:
@@ -83,4 +97,4 @@ var server = http.createServer((request, response) => {
 const port = process.env.PORT;
 server.listen(port);
 
-console.log(`Server version ${package.version} running on port ${port}`);
+console.log(`Server version ${packageJson.version} running on port ${port}`);

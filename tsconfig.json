@@ -10,6 +10,6 @@
     },
 	"files": [
 		"index.ts",
-		"testHarness/src/testHarness.ts"
+		"src/testHarness/youTubeAuthenticationClient.ts"
 	]
 }
