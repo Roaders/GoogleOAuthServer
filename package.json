@@ -1,6 +1,6 @@
 {
   "name": "youtubeoauth",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "engines": {
     "node": "6.9.1",
     "npm": "3.10.8"
@@ -8,9 +8,9 @@
   "description": "OAuth Server for authenticating users to access the youTube api",
   "main": "index.js",
   "scripts": {
-  	"compile": "tsc",
+    "compile": "tsc",
     "start": "node index.js",
-	"launch": "npm run compile && npm start",
+    "launch": "npm run compile && npm start",
     "typings": "typings install",
     "postinstall": "npm run clean && npm run typings && npm run compile",
     "clean": "rimraf *.js",
