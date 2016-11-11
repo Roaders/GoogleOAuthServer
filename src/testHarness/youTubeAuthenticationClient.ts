@@ -27,14 +27,21 @@ namespace PricklyThistle.Auth.YouTube.Client {
 
 		private exchangeTokens(code: string){
 
-			Rx.Observable.fromPromise<IAuthTokens>( $.getJSON( "/api/exchangeTokens/code/" + encodeURIComponent(code) ) )
+			const redirectUri = window.location.origin;
+
+			const requestUrl = "/api/exchangeTokens/code/" + encodeURIComponent(code) + "/redirect/" + encodeURIComponent(redirectUri);
+
+			Rx.Observable.fromPromise<IAuthTokens>( $.getJSON( requestUrl) )
 				.subscribe( data => {
 					console.log(`tokens loaded: ${data.access_token}`);
 				});
 		}
 
 		requestTokens(){
-			Rx.Observable.fromPromise<IAuthUrl>( $.getJSON( "/api/tokenRequestUrl" ) )
+			const redirectUri = window.location.origin;
+			const requestUrl = "/api/tokenRequestUrl/redirect/" + encodeURIComponent(redirectUri);
+
+			Rx.Observable.fromPromise<IAuthUrl>( $.getJSON( requestUrl ) )
 				.subscribe( data => {
 					console.log(`url loaded: ${data.authUrl}`);
 

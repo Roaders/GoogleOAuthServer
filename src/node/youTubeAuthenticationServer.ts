@@ -14,28 +14,34 @@ export class YouTubeAuthenticationServer{
 
 	static baseUrl = "https://accounts.google.com/o/oauth2/";
 
-	static tokenExchangePath = "/api/exchangeTokens/code/";
+	static tokenRequestUrlRegularExpression = /\/api\/tokenRequestUrl\/redirect\/([^\/?&]+)/;
+	static tokenExchangeRegularExpression = /\/api\/exchangeTokens\/code\/([^\/]+)\/redirect\/([^\/?&]+)/;
 
 	handleRequest(request: express.Request): Rx.Observable<string>{
-
-
 		var response: Rx.Observable<any>;
 
-		if(request.url === "/api/tokenRequestUrl"){
-			response = this.getTokenRequestUrl();
+		if(YouTubeAuthenticationServer.tokenRequestUrlRegularExpression.test(request.url)){
+			response = this.getTokenRequestUrl(request.url);
 		}
-		else if(request.url.indexOf(YouTubeAuthenticationServer.tokenExchangePath) === 0){
-			response = this.exchangeTokens(request.url.substr(YouTubeAuthenticationServer.tokenExchangePath.length));
+		else if(YouTubeAuthenticationServer.tokenExchangeRegularExpression.test(request.url)){
+			response = this.exchangeTokens(request.url);
+		}
+		else{
+			const warning = `api method not found for ${request.url}`;
+			console.warn(warning);
+			return Rx.Observable.return(warning);
 		}
 
 		return response.map( data => JSON.stringify(data));
 	}
 
-	private getTokenRequestUrl(): Rx.Observable<IAuthUrl> {
+	private getTokenRequestUrl(requestUrl: string): Rx.Observable<IAuthUrl> {
+
+		const urlMatches = YouTubeAuthenticationServer.tokenRequestUrlRegularExpression.exec(requestUrl);
 
 		let url = YouTubeAuthenticationServer.baseUrl + "auth";
 
-		const redirectUri = "http://localhost:8080";
+		const redirectUri = decodeURIComponent(urlMatches[1]);
 		const scope = "https://www.googleapis.com/auth/youtube.readonly";
 
 		url += "?client_id=" + encodeURIComponent(process.env.CLIENT_ID);
@@ -46,10 +52,12 @@ export class YouTubeAuthenticationServer{
 		return Rx.Observable.just({authUrl: url});
 	}
 
-	private exchangeTokens(code: string): Rx.Observable<IAuthTokens>{
-		code = decodeURIComponent(code);
+	private exchangeTokens(requestUrl: string): Rx.Observable<IAuthTokens>{
 
-		const redirectUri = "http://localhost:8080";
+		const urlMatches = YouTubeAuthenticationServer.tokenExchangeRegularExpression.exec(requestUrl);
+
+		const code = decodeURIComponent(urlMatches[1]);
+		const redirectUri = decodeURIComponent(urlMatches[2]);
 
 		let url = YouTubeAuthenticationServer.baseUrl + "token";
 
