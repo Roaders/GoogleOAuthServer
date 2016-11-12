@@ -79,6 +79,9 @@ namespace PricklyThistle.Auth.YouTube.Client {
 
 			return Rx.Observable.defer(() => {
 
+				url += url.indexOf("?") > 0 ? "&ts=" : "?ts=";
+				url+= new Date().getTime();
+
 				const subject = new Rx.Subject<T>();
 				const request = new XMLHttpRequest();
 				request.open("GET", url);
