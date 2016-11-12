@@ -9,10 +9,12 @@ namespace PricklyThistle.Auth.YouTube.Client {
 	}
 
 	export interface IAuthTokens{
-		"access_token" : string,
-		"token_type" : string,
-		"expires_in" : number,
-		"refresh_token" : string
+		"access_token" : string;
+		"token_type" : string;
+		"expires_in" : number;
+		"refresh_token" : string;
+		error?: string;
+		error_description?: string;
 	}
 
 	interface IHeader{
@@ -65,7 +67,12 @@ namespace PricklyThistle.Auth.YouTube.Client {
 			const redirectUri = window.location.origin;
 			const requestUrl = this._baseUrl + "/api/exchangeTokens/code/" + encodeURIComponent(code) + "/redirect/" + encodeURIComponent(redirectUri);
 
-			return this.loadJson<IAuthTokens>( requestUrl );
+			return this.loadJson<IAuthTokens>( requestUrl )
+				.do( tokens => {
+					if(tokens.error){
+						throw new Error("Error exchanging tokens: " + tokens.error + ": " + tokens.error_description)
+					}
+				} );
 		}
 
 		private loadJson<T>(url: string, headers?: IHeader[]): Rx.Observable<T>{
