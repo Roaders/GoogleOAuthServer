@@ -16,32 +16,48 @@ function handleChannels( channels ): string{
 	return channelId;
 }
 
-function handleVideos(result){
-	console.log( `Videos Loaded: ${ result.items.length }`);
+function handleVideo(video){
+	const title = video.snippet.title;
+	const id = video.id.videoId;
+	const thumbnail = video.snippet.thumbnails.default.url;
 
-	result.items.forEach( video => {
-		const title = video.snippet.title;
-		const id = video.id.videoId;
-		const thumbnail = video.snippet.thumbnails.default.url;
+	console.log(`video: ${id} ${title} ${thumbnail}`);
 
-		console.log(`video: ${id} ${title} ${thumbnail}`);
+	var videoDiv = document.createElement('div');
 
-		var videoDiv = document.createElement('div');
+	var anchor = document.createElement('a');
+	anchor.href = "https://www.youtube.com/watch?v=" + id;
 
-		var anchor = document.createElement('a');
-		anchor.href = "https://www.youtube.com/watch?v=" + id;
+	var image = document.createElement('img');
+	image.src = thumbnail;
 
-		var image = document.createElement('img');
-		image.src = thumbnail;
+	var titleDiv = document.createElement('div');
+	titleDiv.innerText = title;
 
-		var titleDiv = document.createElement('div');
-		titleDiv.innerText = title;
+	videoDiv.appendChild(anchor);
+	anchor.appendChild(image);
+	anchor.appendChild(titleDiv);
+	document.getElementById('results').appendChild(videoDiv);
+}
 
-		videoDiv.appendChild(anchor);
-		anchor.appendChild(image);
-		anchor.appendChild(titleDiv);
-		document.getElementById('results').appendChild(videoDiv);
-	});
+function loadVideos(channelId: string, pageToken?: string): Rx.Observable<any>{
+	let url = "search?part=id,snippet&type=video&maxResults=50&channelId=" + channelId;
+
+	if(pageToken){
+		url += "&pageToken=" + pageToken;
+	}
+
+	return authClient.makeRequest<any>(url, tokens)
+		.flatMap( videoResult => {
+			var videoList = Rx.Observable.from(videoResult.items);
+
+			if( videoResult.nextPageToken ) {
+				const nextObservable = this.loadVideos( channelId, videoResult.nextPageToken );
+				return Rx.Observable.merge( videoList, nextObservable );
+			}
+
+			return videoList;
+		});
 }
 
 function handleTokens( result: IAuthTokens ){
@@ -53,10 +69,8 @@ function handleTokens( result: IAuthTokens ){
 	authClient
 		.makeRequest("channels?part=id&mine=true", tokens)
 		.map( result => handleChannels(result) )
-		.flatMap( channelId => {
-			return authClient.makeRequest("search?part=id,snippet&maxResults=50&channelId=" + channelId, tokens);
-		})
-		.subscribe( result => handleVideos(result) );
+		.flatMap( channelId => loadVideos(channelId))
+		.subscribe( result => handleVideo(result) );
 }
 
 authClient.createTokensStream().subscribe( result => handleTokens(result) );
