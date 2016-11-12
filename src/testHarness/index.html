@@ -9,11 +9,7 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/4.1.0/rx.all.js"></script>
 
 	<script src="browser/youTubeAuthenticationClient.js"></script>
-
-	<script>
-		var authClient = new PricklyThistle.Auth.YouTube.Client.YouTubeAuthenticationClient();
-		authClient.createLoadTokensObservable().subscribe( function(result){ console.log( "tokens returned: " + JSON.stringify(result) ) } );
-	</script>
+	<script src="testHarness.js"></script>
 
 </head>
 

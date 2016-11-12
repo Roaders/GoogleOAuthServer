@@ -1,12 +1,21 @@
 
-
 /// <reference path="../../node_modules/rx/ts/rx.all.d.ts" />
 
-import contracts = require("../common/contracts");
-import IAuthUrl = contracts.IAuthUrl;
-import IAuthTokens = contracts.IAuthTokens;
+
 
 namespace PricklyThistle.Auth.YouTube.Client {
+	
+	export interface IAuthUrl{
+		authUrl: string;
+	}
+
+	export interface IAuthTokens{
+		"access_token" : string,
+		"token_type" : string,
+		"expires_in" : number,
+		"refresh_token" : string
+	}
+
 
 	export class YouTubeAuthenticationClient{
 

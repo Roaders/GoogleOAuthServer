@@ -12,13 +12,12 @@
     "start": "node index.js",
     "launch": "npm run compile && npm start",
     "typings": "typings install",
-    "postinstall": "npm run clean && npm run typings && npm run compile",
-    "clean": "rimraf *.js",
+    "postinstall": "npm run typings && npm run compile",
     "push:git": "git push --tags origin master",
     "push:heroku": "git push --tags heroku master",
     "version:patch": "npm version patch",
     "postversion:patch": "npm run push:git",
-    "deploy": "npm run clean && npm run compile && npm run version:patch && npm run push:heroku"
+    "deploy": "npm run compile && npm run version:patch && npm run push:heroku"
   },
   "repository": {
     "type": "git",
@@ -38,7 +37,6 @@
   "dependencies": {
     "express": "^4.14.0",
     "node-env-file": "^0.1.8",
-    "rimraf": "^2.5.4",
     "rx": "^4.1.0",
     "rx-node": "^1.0.2",
     "typescript": "1.8.10",
