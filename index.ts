@@ -21,7 +21,7 @@ app.use('/browser', express.static('src/browser'))
 
 app.get( "/api/*", (req: express.Request, res: express.Response) => {
 
-	authServer.handleRequest(req)
+	authServer.handleExpressRequest(req)
 		.subscribe(
 			result => {
 				res.send(result);

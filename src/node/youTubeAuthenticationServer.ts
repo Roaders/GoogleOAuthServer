@@ -19,7 +19,7 @@ export class YouTubeAuthenticationServer{
 
 	static scopes: string = "https://www.googleapis.com/auth/youtube https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/youtube.force-ssl";
 
-	handleRequest(request: express.Request): Rx.Observable<string>{
+	handleExpressRequest(request: express.Request): Rx.Observable<string>{
 		let response: Rx.Observable<any>;
 
 		if(YouTubeAuthenticationServer.tokenRequestUrlRegularExpression.test(request.url)){

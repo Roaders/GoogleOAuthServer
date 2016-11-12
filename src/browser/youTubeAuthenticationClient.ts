@@ -1,10 +1,9 @@
 
 /// <reference path="../../node_modules/rx/ts/rx.all.d.ts" />
 
-
-
 namespace PricklyThistle.Auth.YouTube.Client {
-	
+
+	//TODO: I wish I could figure out how to use the contacts in teh shared folder that are used by node
 	export interface IAuthUrl{
 		authUrl: string;
 	}
@@ -16,12 +15,20 @@ namespace PricklyThistle.Auth.YouTube.Client {
 		"refresh_token" : string
 	}
 
+	interface IHeader{
+		header: string;
+		value: string;
+	}
 
 	export class YouTubeAuthenticationClient{
 
+		constructor(private _baseUrl: string = "" ){
+		}
+
+		static youTubeBaseUrl = "https://www.googleapis.com/youtube/v3/";
 		static codeRegularExpression = /[?&]code=([^&]+)/
 
-		createLoadTokensObservable(): Rx.Observable<IAuthTokens>{
+		createTokensStream(): Rx.Observable<IAuthTokens>{
 			const regExResults = YouTubeAuthenticationClient.codeRegularExpression.exec(window.location.href)
 
 			if(regExResults){
@@ -38,7 +45,7 @@ namespace PricklyThistle.Auth.YouTube.Client {
 
  		requestTokens(){
 			const redirectUri = window.location.origin;
-			const requestUrl = "/api/tokenRequestUrl/redirect/" + encodeURIComponent(redirectUri);
+			const requestUrl = this._baseUrl + "/api/tokenRequestUrl/redirect/" + encodeURIComponent(redirectUri);
 
 			this.loadJson<IAuthUrl>( requestUrl )
 				.subscribe( data => {
@@ -46,20 +53,34 @@ namespace PricklyThistle.Auth.YouTube.Client {
 				});
 		}
 
+		makeRequest<T>(path: string, tokens: IAuthTokens): Rx.Observable<T>{
+			const url = YouTubeAuthenticationClient.youTubeBaseUrl + path;
+
+			const headers = [{header: "Authorization", value: "Bearer " + tokens.access_token}];
+
+			return this.loadJson<T>(url,headers);
+		}
+
 		private exchangeTokens(code: string): Rx.Observable<IAuthTokens>{
 			const redirectUri = window.location.origin;
-			const requestUrl = "/api/exchangeTokens/code/" + encodeURIComponent(code) + "/redirect/" + encodeURIComponent(redirectUri);
+			const requestUrl = this._baseUrl + "/api/exchangeTokens/code/" + encodeURIComponent(code) + "/redirect/" + encodeURIComponent(redirectUri);
 
 			return this.loadJson<IAuthTokens>( requestUrl );
 		}
 
-		private loadJson<T>(url: string): Rx.Observable<T>{
+		private loadJson<T>(url: string, headers?: IHeader[]): Rx.Observable<T>{
 
 			return Rx.Observable.defer(() => {
 
 				const subject = new Rx.Subject<T>();
 				const request = new XMLHttpRequest();
 				request.open("GET", url);
+
+				if(headers){
+					headers.forEach( header => {
+						request.setRequestHeader(header.header, header.value);
+					});
+				}
 
 				request.onload = function() {
 					if (request.status == 200) {
