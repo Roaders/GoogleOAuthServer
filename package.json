@@ -1,11 +1,11 @@
 {
-  "name": "youtubeoauth",
+  "name": "googleOAuthServer",
   "version": "1.0.15",
   "engines": {
     "node": "6.9.1",
     "npm": "3.10.8"
   },
-  "description": "OAuth Server for authenticating users to access the youTube api",
+  "description": "OAuth Server for authenticating users to access google apis",
   "main": "index.js",
   "scripts": {
     "compile": "tsc",
@@ -21,19 +21,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Roaders/YouTubeOAuth.git"
+    "url": "git+https://github.com/Roaders/GoogleOAuthServer.git"
   },
   "keywords": [
     "node",
-    "youtube",
+    "google",
     "oauth"
   ],
   "author": "Giles Roadnight",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Roaders/YouTubeOAuth/issues"
+    "url": "https://github.com/Roaders/GoogleOAuthServer/issues"
   },
-  "homepage": "https://github.com/Roaders/YouTubeOAuth#readme",
+  "homepage": "https://github.com/Roaders/GoogleOAuthServer#readme",
   "dependencies": {
     "express": "^4.14.0",
     "node-env-file": "^0.1.8",

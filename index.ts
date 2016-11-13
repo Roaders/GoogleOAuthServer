@@ -6,13 +6,13 @@ var env = require('node-env-file');
 import fs = require('fs');
 import path = require('path');
 import express = require('express');
-import youTubeAuthServer = require("./src/node/youTubeAuthenticationServer");
+import server = require("./src/node/googleOAuthServer");
 
 if (fs.existsSync(__dirname + '/devEnvironment.env' )) {
 	env(__dirname + '/devEnvironment.env')
 }
 
-const authServer = new youTubeAuthServer.YouTubeAuthenticationServer();
+const authServer = new server.GoogleOAuthServer();
 
 var app = express();
 

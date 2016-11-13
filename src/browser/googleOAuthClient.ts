@@ -1,7 +1,7 @@
 
 /// <reference path="../../node_modules/rx/ts/rx.all.d.ts" />
 
-namespace PricklyThistle.Auth.YouTube.Client {
+namespace PricklyThistle.Auth.Google.Client {
 
 	//TODO: I wish I could figure out how to use the contacts in teh shared folder that are used by node
 	export interface IAuthUrl{
@@ -22,7 +22,7 @@ namespace PricklyThistle.Auth.YouTube.Client {
 		value: string;
 	}
 
-	export class YouTubeAuthenticationClient{
+	export class GoogleOAuthClient{
 
 		constructor(private _baseUrl: string = "" ){
 		}
@@ -32,12 +32,12 @@ namespace PricklyThistle.Auth.YouTube.Client {
 		static codeRegularExpression = /[?&]code=([^&]+)/
 
 		createTokensStream(): Rx.Observable<IAuthTokens>{
-			const regExResults = YouTubeAuthenticationClient.codeRegularExpression.exec(window.location.href)
+			const regExResults = GoogleOAuthClient.codeRegularExpression.exec(window.location.href)
 
 			if(regExResults){
 				const code = regExResults[1];
 
-				console.log(`YouTubeAuthenticationClient: auth code found, attempting to exchange for tokens`);
+				console.log(`GoogleOAuthClient: auth code found, attempting to exchange for tokens`);
 
 				return this.exchangeTokens(code);
 			}
@@ -57,13 +57,13 @@ namespace PricklyThistle.Auth.YouTube.Client {
 		}
 
 		revokeTokens(tokens: IAuthTokens): Rx.Observable<string>{
-			const url = YouTubeAuthenticationClient.authBaseUrl + "revoke?token=" + tokens.access_token;
+			const url = GoogleOAuthClient.authBaseUrl + "revoke?token=" + tokens.access_token;
 
 			return this.loadJson<string>(url);
 		}
 
 		makeRequest<T>(path: string, tokens: IAuthTokens): Rx.Observable<T>{
-			const url = YouTubeAuthenticationClient.youTubeBaseUrl + path;
+			const url = GoogleOAuthClient.youTubeBaseUrl + path;
 
 			const headers = [{header: "Authorization", value: "Bearer " + tokens.access_token}];
 

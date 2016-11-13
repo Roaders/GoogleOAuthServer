@@ -10,7 +10,7 @@ import url = require('url');
 import IAuthUrl = contracts.IAuthUrl;
 import IAuthTokens = contracts.IAuthTokens;
 
-export class YouTubeAuthenticationServer{
+export class GoogleOAuthServer{
 
 	static baseUrl = "https://accounts.google.com/o/oauth2/";
 
@@ -22,10 +22,10 @@ export class YouTubeAuthenticationServer{
 	handleExpressRequest(request: express.Request): Rx.Observable<string>{
 		let response: Rx.Observable<any>;
 
-		if(YouTubeAuthenticationServer.tokenRequestUrlRegularExpression.test(request.url)){
+		if(GoogleOAuthServer.tokenRequestUrlRegularExpression.test(request.url)){
 			response = this.getTokenRequestUrl(request.url);
 		}
-		else if(YouTubeAuthenticationServer.tokenExchangeRegularExpression.test(request.url)){
+		else if(GoogleOAuthServer.tokenExchangeRegularExpression.test(request.url)){
 			response = this.exchangeTokens(request.url);
 		}
 		else{
@@ -38,14 +38,14 @@ export class YouTubeAuthenticationServer{
 	}
 
 	private getTokenRequestUrl(requestUrl: string): Rx.Observable<IAuthUrl> {
-		const urlMatches = YouTubeAuthenticationServer.tokenRequestUrlRegularExpression.exec(requestUrl);
+		const urlMatches = GoogleOAuthServer.tokenRequestUrlRegularExpression.exec(requestUrl);
 		const redirectUri = decodeURIComponent(urlMatches[1]);
 
-		let url = YouTubeAuthenticationServer.baseUrl + "auth";
+		let url = GoogleOAuthServer.baseUrl + "auth";
 
 		url += "?client_id=" + encodeURIComponent(process.env.CLIENT_ID);
 		url += "&redirect_uri=" + encodeURIComponent(redirectUri);
-		url += "&scope=" + encodeURIComponent(YouTubeAuthenticationServer.scopes);
+		url += "&scope=" + encodeURIComponent(GoogleOAuthServer.scopes);
 		url += "&access_type=offline";
 		url += "&response_type=code";
 
@@ -53,11 +53,11 @@ export class YouTubeAuthenticationServer{
 	}
 
 	private exchangeTokens(requestUrl: string): Rx.Observable<IAuthTokens>{
-		const urlMatches = YouTubeAuthenticationServer.tokenExchangeRegularExpression.exec(requestUrl);
+		const urlMatches = GoogleOAuthServer.tokenExchangeRegularExpression.exec(requestUrl);
 		const code = decodeURIComponent(urlMatches[1]);
 		const redirectUri = decodeURIComponent(urlMatches[2]);
 
-		let url = YouTubeAuthenticationServer.baseUrl + "token";
+		let url = GoogleOAuthServer.baseUrl + "token";
 
 		var postData= "code=" + encodeURIComponent(code);
 		postData += "&redirect_uri=" + encodeURIComponent(redirectUri);

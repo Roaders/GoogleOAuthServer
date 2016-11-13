@@ -1,12 +1,12 @@
 
-/// <reference path="../browser/youTubeAuthenticationClient.ts" />
+/// <reference path="../browser/googleoAuthClient.ts" />
 
-import YouTubeAuthenticationClient = PricklyThistle.Auth.YouTube.Client.YouTubeAuthenticationClient;
-import IAuthTokens = PricklyThistle.Auth.YouTube.Client.IAuthTokens;
+import GoogleOAuthClient = PricklyThistle.Auth.Google.Client.GoogleOAuthClient;
+import IAuthTokens = PricklyThistle.Auth.Google.Client.IAuthTokens;
 
 var tokens: IAuthTokens;
 var channelId: string;
-var authClient = new YouTubeAuthenticationClient();
+var authClient = new GoogleOAuthClient();
 
 function revokeTokens(){
 	authClient.revokeTokens(tokens).subscribe();

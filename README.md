@@ -1,2 +1,2 @@
-# YouTubeOAuth
-OAuth server to allow authentication with youTube
+# GoogleOAuthServer
+OAuth server to allow authentication with google
