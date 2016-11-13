@@ -7,7 +7,7 @@ For a while I have wanted to find a host provider for my very small node apps th
 
  It seems that Heroku meets all these criteria and so far I am extremely pleased with the service that they provide.
 
- ## Cost ##
+## Cost ##
 
 Heroku have a number of different pricing plans that go all the way up to enterprise level.
 
