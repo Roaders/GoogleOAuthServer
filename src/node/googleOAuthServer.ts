@@ -16,6 +16,7 @@ export class GoogleOAuthServer{
 
 	static tokenRequestUrlRegularExpression = /\/api\/tokenRequestUrl\/redirect\/([^\/?&]+)/;
 	static tokenExchangeRegularExpression = /\/api\/exchangeTokens\/code\/([^\/]+)\/redirect\/([^\/?&]+)/;
+	static refreshTokenRegularExpression = /\/api\/refreshToken\/([^\/?&]+)/;
 
 	static scopes: string = "https://www.googleapis.com/auth/youtube https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/youtube.force-ssl";
 
@@ -24,6 +25,9 @@ export class GoogleOAuthServer{
 
 		if(GoogleOAuthServer.tokenRequestUrlRegularExpression.test(request.url)){
 			response = this.getTokenRequestUrl(request.url);
+		}
+		else if(GoogleOAuthServer.refreshTokenRegularExpression.test(request.url)){
+			response = this.refreshTokens(request.url);
 		}
 		else if(GoogleOAuthServer.tokenExchangeRegularExpression.test(request.url)){
 			response = this.exchangeTokens(request.url);
@@ -64,6 +68,21 @@ export class GoogleOAuthServer{
 		postData += "&client_id=" + encodeURIComponent(process.env.CLIENT_ID);
 		postData += "&client_secret=" + encodeURIComponent(process.env.CLIENT_SECRET);
 		postData += "&grant_type=authorization_code";
+
+		return this.makePostRequest<IAuthTokens>(url,postData);
+	}
+
+	private refreshTokens(requestUrl: string): Rx.Observable<IAuthTokens>{
+
+		const urlMatches = GoogleOAuthServer.refreshTokenRegularExpression.exec(requestUrl);
+		const token = decodeURIComponent(urlMatches[1]);
+
+		let url = GoogleOAuthServer.baseUrl + "token";
+
+		var postData= "refresh_token=" + encodeURIComponent(token);
+		postData += "&client_id=" + encodeURIComponent(process.env.CLIENT_ID);
+		postData += "&client_secret=" + encodeURIComponent(process.env.CLIENT_SECRET);
+		postData += "&grant_type=refresh_token";
 
 		return this.makePostRequest<IAuthTokens>(url,postData);
 	}

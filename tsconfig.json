@@ -2,16 +2,24 @@
     "compilerOptions": {
         "target": "es5",
         "module": "commonjs",
-		"diagnostics": true,
-		"sourceMap": true
+        "diagnostics": true,
+        "sourceMap": true
     },
     "compileOnSave": true,
     "buildOnSave": false,
     "atom": {
         "rewriteTsconfig": true
     },
-	"files": [
-		"index.ts",
-		"src/testHarness/testHarness.ts"
-	]
+    "filesGlob": [
+        "**/*.ts",
+        "!node_modules/**",
+        "!typings/**"
+    ],
+    "files": [
+        "index.ts",
+        "src/browser/googleOAuthClient.ts",
+        "src/common/contracts.d.ts",
+        "src/node/googleOAuthServer.ts",
+        "src/testHarness/testHarness.ts"
+    ]
 }

@@ -31,19 +31,23 @@ namespace PricklyThistle.Auth.Google.Client {
 		static youTubeBaseUrl = "https://www.googleapis.com/youtube/v3/";
 		static codeRegularExpression = /[?&]code=([^&]+)/
 
+		private _authTokensStream: Rx.Subject<IAuthTokens>;
+
 		createTokensStream(): Rx.Observable<IAuthTokens>{
 			const regExResults = GoogleOAuthClient.codeRegularExpression.exec(window.location.href)
+
+			this._authTokensStream = new Rx.Subject<IAuthTokens>();
 
 			if(regExResults){
 				const code = regExResults[1];
 
 				console.log(`GoogleOAuthClient: auth code found, attempting to exchange for tokens`);
 
-				return this.exchangeTokens(code);
+				return this.exchangeTokens(code)
+					.merge(this._authTokensStream);
 			}
-			else{
-				return Rx.Observable.empty<IAuthTokens>();
-			}
+
+			return this._authTokensStream;
 		}
 
  		requestTokens(){
@@ -65,9 +69,38 @@ namespace PricklyThistle.Auth.Google.Client {
 		makeRequest<T>(path: string, tokens: IAuthTokens): Rx.Observable<T>{
 			const url = GoogleOAuthClient.youTubeBaseUrl + path;
 
-			const headers = [{header: "Authorization", value: "Bearer " + tokens.access_token}];
+			const authorizationHeader: IHeader = {header: "Authorization", value: "Bearer " + tokens.access_token};
+			const headers = [authorizationHeader];
 
-			return this.loadJson<T>(url,headers);
+			return this.loadJson<T>(url,headers)
+				.retryWhen(errors => {
+
+					var tokensRefreshed: boolean;
+
+					return errors.flatMap((error) => {
+
+						if(error.status === 401 && !tokensRefreshed){
+							console.log(`Tokens expired, attempting to refresh`);
+
+							tokensRefreshed = true;
+							return this.refreshtokens(tokens)
+								.do(newTokens => authorizationHeader.value = "Bearer " + newTokens.access_token );
+						} else {
+							throw error;
+						}
+					});
+				});
+		}
+
+		private refreshtokens(oldTokens: IAuthTokens): Rx.Observable<IAuthTokens>{
+			const requestUrl = this._baseUrl + "/api/refreshToken/" + encodeURIComponent(oldTokens.refresh_token);
+
+			return this.loadJson<IAuthTokens>( requestUrl )
+				.do( refreshedTokens => {
+					refreshedTokens.refresh_token = oldTokens.refresh_token;
+
+					this._authTokensStream.onNext(refreshedTokens);
+				});
 		}
 
 		private exchangeTokens(code: string): Rx.Observable<IAuthTokens>{
@@ -104,7 +137,12 @@ namespace PricklyThistle.Auth.Google.Client {
 						subject.onNext(JSON.parse(request.response));
 					}
 					else {
-						subject.onError(request.statusText);
+						const error = {
+							status: request.status,
+							statusText: request.statusText,
+							details: JSON.parse(request.response)
+						};
+						subject.onError(error);
 					}
 					subject.onCompleted();
 				};

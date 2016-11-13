@@ -1,12 +1,12 @@
 
-/// <reference path="../browser/googleoAuthClient.ts" />
-
 import GoogleOAuthClient = PricklyThistle.Auth.Google.Client.GoogleOAuthClient;
 import IAuthTokens = PricklyThistle.Auth.Google.Client.IAuthTokens;
 
 var tokens: IAuthTokens;
 var channelId: string;
 var authClient = new GoogleOAuthClient();
+
+var videosLoading: boolean;
 
 function revokeTokens(){
 	authClient.revokeTokens(tokens).subscribe();
@@ -38,10 +38,22 @@ function handleTokens( result: IAuthTokens ){
 }
 
 function startLoad(){
+
+	if(videosLoading){
+		console.log(`aborting video load as videos already loading`);
+		return;
+	}
+
+	videosLoading = true;
+
 	loadChannels()
 		.map( result => handleChannels(result) )
 		.flatMap( channelId => loadVideos(channelId))
-		.subscribe( result => handleVideo(result) );
+		.subscribe(
+			result => handleVideo(result),
+			null,
+			() => videosLoading = false
+		);
 }
 
 function loadChannels(): Rx.Observable<any>{
@@ -89,8 +101,6 @@ function handleVideo(video){
 	const id = video.id.videoId;
 	const thumbnail = video.snippet.thumbnails.default.url;
 
-	console.log(`video: ${id} ${title} ${thumbnail}`);
-
 	var videoDiv = document.createElement('div');
 
 	var anchor = document.createElement('a');
@@ -108,4 +118,6 @@ function handleVideo(video){
 	document.getElementById('videoResults').appendChild(videoDiv);
 }
 
-authClient.createTokensStream().subscribe( result => handleTokens(result) );
+authClient.createTokensStream()
+	.do( result => handleTokens(result))
+	.subscribe();
