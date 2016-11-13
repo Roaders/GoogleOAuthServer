@@ -27,6 +27,7 @@ namespace PricklyThistle.Auth.YouTube.Client {
 		constructor(private _baseUrl: string = "" ){
 		}
 
+		static authBaseUrl = "https://accounts.google.com/o/oauth2/";
 		static youTubeBaseUrl = "https://www.googleapis.com/youtube/v3/";
 		static codeRegularExpression = /[?&]code=([^&]+)/
 
@@ -53,6 +54,12 @@ namespace PricklyThistle.Auth.YouTube.Client {
 				.subscribe( data => {
 					window.location.href = data.authUrl;
 				});
+		}
+
+		revokeTokens(tokens: IAuthTokens): Rx.Observable<string>{
+			const url = YouTubeAuthenticationClient.authBaseUrl + "revoke?token=" + tokens.access_token;
+
+			return this.loadJson<string>(url);
 		}
 
 		makeRequest<T>(path: string, tokens: IAuthTokens): Rx.Observable<T>{

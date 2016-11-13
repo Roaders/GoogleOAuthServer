@@ -46,6 +46,7 @@ export class YouTubeAuthenticationServer{
 		url += "?client_id=" + encodeURIComponent(process.env.CLIENT_ID);
 		url += "&redirect_uri=" + encodeURIComponent(redirectUri);
 		url += "&scope=" + encodeURIComponent(YouTubeAuthenticationServer.scopes);
+		url += "&access_type=offline";
 		url += "&response_type=code";
 
 		return Rx.Observable.just({authUrl: url});

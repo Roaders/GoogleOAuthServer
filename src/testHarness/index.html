@@ -19,7 +19,15 @@
 
 	<button onclick="authClient.requestTokens()">Request Tokens</button>
 
-	<div id="results"></div>
+	<div>
+		<textarea id="tokenResult" rows="15" style="width: 900px"></textArea>
+	</div>
+
+	<button onclick="revokeTokens()">Revoke Tokens</button>
+
+	<button id="reloadVideosButton" onclick="reloadVideos()">Load Videos</button>
+
+	<div id="videoResults"></div>
 
 </body>
 </html>
