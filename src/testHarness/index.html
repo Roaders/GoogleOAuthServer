@@ -7,9 +7,17 @@
 	<title>Google Authentication Test Harness</title>
 
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/4.1.0/rx.all.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/systemjs/0.19.41/system.js"></script>
 
-	<script src="browser/googleOAuthClient.js"></script>
-	<script src="testHarness.js"></script>
+	<script>
+		System.defaultJSExtensions = true;
+
+		SystemJS.config({
+			baseURL: '/'
+		});
+
+		SystemJS.import('testHarness.js');
+	</script>
 
 </head>
 
@@ -17,15 +25,15 @@
 
 	<h1>You Tube Authentication Test harness</h1>
 
-	<button onclick="authClient.requestTokens()">Request Tokens</button>
+	<button id="btnRequestTokens">Request Tokens</button>
 
 	<div>
 		<textarea id="tokenResult" rows="15" style="width: 900px"></textArea>
 	</div>
 
-	<button onclick="revokeTokens()">Revoke Tokens</button>
+	<button id="btnRevokeTokens">Revoke Tokens</button>
 
-	<button id="reloadVideosButton" onclick="reloadVideos()">Load Videos</button>
+	<button id="btnLoadVideos">Load Videos</button>
 
 	<div id="videoResults"></div>
 

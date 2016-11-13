@@ -1,5 +1,4 @@
 
-import contracts = require("../common/contracts");
 import express = require('express');
 import Rx = require('rx');
 import RxNode = require('rx-node');
@@ -7,8 +6,8 @@ import http = require('http');
 import https = require('https');
 import url = require('url');
 
-import IAuthUrl = contracts.IAuthUrl;
-import IAuthTokens = contracts.IAuthTokens;
+import {IAuthUrl} from "../common/contracts";
+import {IAuthTokens} from "../common/contracts";
 
 export class GoogleOAuthServer{
 

@@ -1,6 +1,6 @@
 
-import GoogleOAuthClient = PricklyThistle.Auth.Google.Client.GoogleOAuthClient;
-import IAuthTokens = PricklyThistle.Auth.Google.Client.IAuthTokens;
+import {GoogleOAuthClient} from "../browser/googleOAuthClient";
+import {IAuthTokens} from "../common/contracts";
 
 var tokens: IAuthTokens;
 var channelId: string;
@@ -88,7 +88,7 @@ function loadVideos(channelId: string, pageToken?: string): Rx.Observable<any>{
 			var videoList = Rx.Observable.from(videoResult.items);
 
 			if( videoResult.nextPageToken ) {
-				const nextObservable = this.loadVideos( channelId, videoResult.nextPageToken );
+				const nextObservable = loadVideos( channelId, videoResult.nextPageToken );
 				return Rx.Observable.merge( videoList, nextObservable );
 			}
 
@@ -121,3 +121,12 @@ function handleVideo(video){
 authClient.createTokensStream()
 	.do( result => handleTokens(result))
 	.subscribe();
+
+var requestTokensButton = <HTMLButtonElement>document.getElementById("btnRequestTokens")
+requestTokensButton.onclick = (event) => authClient.requestTokens();
+
+var revokeTokensButton = <HTMLButtonElement>document.getElementById("btnRevokeTokens")
+revokeTokensButton.onclick = (event) => revokeTokens();
+
+var loadVideosButton = <HTMLButtonElement>document.getElementById("btnLoadVideos")
+loadVideosButton.onclick = (event) => reloadVideos()
