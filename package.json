@@ -14,10 +14,9 @@
     "typings": "typings install",
     "postinstall": "npm run typings && npm run compile",
     "push:git": "git push --tags origin master",
-    "push:heroku": "git push --tags heroku master",
     "version:patch": "npm version patch",
     "postversion:patch": "npm run push:git",
-    "deploy": "npm run compile && npm run version:patch && npm run push:heroku"
+    "deploy": "npm run compile && npm run version:patch && npm run push:git"
   },
   "repository": {
     "type": "git",
