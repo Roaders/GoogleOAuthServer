@@ -31,7 +31,7 @@ app.get( "/api/*", (req: express.Request, res: express.Response) => {
 });
 
 app.get( "/version", (req, res) => {
-	res.send(`Server version is ${packageJson.version} at ${new Date().getTimeString()}`);
+	res.send(`Server version is ${packageJson.version} at ${new Date().toTimeString()}`);
 });
 
 const port = process.env.PORT;
