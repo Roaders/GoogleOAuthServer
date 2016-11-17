@@ -20,7 +20,7 @@ export class GoogleOAuthServer{
 	static tokenExchangeRegularExpression = /\/api\/exchangeTokens\/code\/([^\/]+)\/redirect\/([^\/?&]+)/;
 	static refreshTokenRegularExpression = /\/api\/refreshToken\/([^\/?&]+)/;
 
-	static scopes: string = "https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/userinfo.profile";
+	static userInfoScope = "https://www.googleapis.com/auth/userinfo.profile";
 
 	handleExpressRequest(request: express.Request): Rx.Observable<string>{
 		let response: Rx.Observable<any>;
@@ -49,9 +49,14 @@ export class GoogleOAuthServer{
 
 		let url = GoogleOAuthServer.baseUrl + "auth";
 
+		let scopes = process.env.SCOPES;
+		if(scopes.indexOf( GoogleOAuthServer.userInfoScope ) < 0){
+			scopes += " " + GoogleOAuthServer.userInfoScope
+		}
+
 		url += "?client_id=" + encodeURIComponent(process.env.CLIENT_ID);
 		url += "&redirect_uri=" + encodeURIComponent(redirectUri);
-		url += "&scope=" + encodeURIComponent(GoogleOAuthServer.scopes);
+		url += "&scope=" + encodeURIComponent(scopes);
 		url += "&access_type=offline";
 		url += "&response_type=code";
 

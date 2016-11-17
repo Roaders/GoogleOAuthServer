@@ -8,7 +8,13 @@
     },
     "CLIENT_SECRET": {
       "required": true
-    }
+  },
+  "SCOPES": {
+	  "required": true
+  },
+  "DATABASE_URL": {
+	  "required": true
+  }
   },
   "formation": {
     "web": {
