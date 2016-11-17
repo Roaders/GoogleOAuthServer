@@ -1,7 +1,7 @@
 
 /// <reference path="../../node_modules/rx/ts/rx.all.d.ts" />
 
-import {IAuthUrl, IAuthTokens, ITokenError} from "../common/contracts";
+import {IAuthUrl, IRefreshToken, ITokenError} from "../common/contracts";
 
 interface IHeader{
 	header: string;
@@ -17,12 +17,12 @@ export class GoogleOAuthClient{
 	static youTubeBaseUrl = "https://www.googleapis.com/youtube/v3/";
 	static codeRegularExpression = /[?&]code=([^&]+)/
 
-	private _authTokensStream: Rx.Subject<IAuthTokens>;
+	private _authTokensStream: Rx.Subject<IRefreshToken>;
 
-	createTokensStream(): Rx.Observable<IAuthTokens>{
+	createTokensStream(): Rx.Observable<IRefreshToken>{
 		const regExResults = GoogleOAuthClient.codeRegularExpression.exec(window.location.href)
 
-		this._authTokensStream = new Rx.Subject<IAuthTokens>();
+		this._authTokensStream = new Rx.Subject<IRefreshToken>();
 
 		if(regExResults){
 			const code = regExResults[1];
@@ -46,13 +46,13 @@ export class GoogleOAuthClient{
 			});
 	}
 
-	revokeTokens(tokens: IAuthTokens): Rx.Observable<string>{
+	revokeTokens(tokens: IRefreshToken): Rx.Observable<string>{
 		const url = GoogleOAuthClient.authBaseUrl + "revoke?token=" + tokens.access_token;
 
 		return this.loadJson<string>(url);
 	}
 
-	makeRequest<T>(path: string, tokens: IAuthTokens): Rx.Observable<T>{
+	makeRequest<T>(path: string, tokens: IRefreshToken): Rx.Observable<T>{
 		const url = GoogleOAuthClient.youTubeBaseUrl + path;
 
 		const authorizationHeader: IHeader = {header: "Authorization", value: "Bearer " + tokens.access_token};
@@ -78,10 +78,10 @@ export class GoogleOAuthClient{
 			});
 	}
 
-	private refreshtokens(oldTokens: IAuthTokens): Rx.Observable<IAuthTokens>{
+	private refreshtokens(oldTokens: IRefreshToken): Rx.Observable<IRefreshToken>{
 		const requestUrl = this._baseUrl + "/api/refreshToken/" + encodeURIComponent(oldTokens.refresh_token);
 
-		return this.loadJson<IAuthTokens>( requestUrl )
+		return this.loadJson<IRefreshToken>( requestUrl )
 			.do( refreshedTokens => {
 				refreshedTokens.refresh_token = oldTokens.refresh_token;
 
@@ -89,11 +89,11 @@ export class GoogleOAuthClient{
 			});
 	}
 
-	private exchangeTokens(code: string): Rx.Observable<IAuthTokens>{
+	private exchangeTokens(code: string): Rx.Observable<IRefreshToken>{
 		const redirectUri = window.location.origin;
 		const requestUrl = this._baseUrl + "/api/exchangeTokens/code/" + encodeURIComponent(code) + "/redirect/" + encodeURIComponent(redirectUri);
 
-		return this.loadJson<IAuthTokens>( requestUrl )
+		return this.loadJson<IRefreshToken>( requestUrl )
 			.do( tokens => {
 				const tokenError = <any>tokens as ITokenError;
 				if(tokenError.error){

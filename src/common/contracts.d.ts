@@ -3,10 +3,15 @@ export interface IAuthUrl{
 	authUrl: string;
 }
 
-export interface IAuthTokens{
+export interface IAuthToken{
 	"access_token": string;
 	"token_type": string;
 	"expires_in": number;
+	"user_id": string;
+}
+
+export interface IRefreshToken extends IAuthToken
+{
 	"refresh_token": string;
 }
 

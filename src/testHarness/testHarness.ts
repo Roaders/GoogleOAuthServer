@@ -1,8 +1,8 @@
 
 import {GoogleOAuthClient} from "../browser/googleOAuthClient";
-import {IAuthTokens} from "../common/contracts";
+import {IRefreshToken} from "../common/contracts";
 
-var tokens: IAuthTokens;
+var tokens: IRefreshToken;
 var channelId: string;
 var authClient = new GoogleOAuthClient();
 
@@ -24,7 +24,7 @@ function reloadVideos(){
 	startLoad();
 }
 
-function handleTokens( result: IAuthTokens ){
+function handleTokens( result: IRefreshToken ){
 	(<any>result).loadedAt = new Date();
 	const tokenTextArea = <HTMLTextAreaElement>document.getElementById('tokenResult');
 	tokenTextArea.value = JSON.stringify(result,null,4);

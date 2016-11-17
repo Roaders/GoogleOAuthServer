@@ -7,17 +7,20 @@ import https = require('https');
 import url = require('url');
 
 import {IAuthUrl} from "../common/contracts";
-import {IAuthTokens} from "../common/contracts";
+import {IAuthToken} from "../common/contracts";
+import {IRefreshToken} from "../common/contracts";
 
 export class GoogleOAuthServer{
 
 	static baseUrl = "https://accounts.google.com/o/oauth2/";
 
+	static userInfoUrl = "https://www.googleapis.com/oauth2/v2/userinfo?fields=id"
+
 	static tokenRequestUrlRegularExpression = /\/api\/tokenRequestUrl\/redirect\/([^\/?&]+)/;
 	static tokenExchangeRegularExpression = /\/api\/exchangeTokens\/code\/([^\/]+)\/redirect\/([^\/?&]+)/;
 	static refreshTokenRegularExpression = /\/api\/refreshToken\/([^\/?&]+)/;
 
-	static scopes: string = "https://www.googleapis.com/auth/youtube https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/youtube.force-ssl";
+	static scopes: string = "https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/userinfo.profile";
 
 	handleExpressRequest(request: express.Request): Rx.Observable<string>{
 		let response: Rx.Observable<any>;
@@ -55,7 +58,7 @@ export class GoogleOAuthServer{
 		return Rx.Observable.just({authUrl: url});
 	}
 
-	private exchangeTokens(requestUrl: string): Rx.Observable<IAuthTokens>{
+	private exchangeTokens(requestUrl: string): Rx.Observable<IRefreshToken>{
 		const urlMatches = GoogleOAuthServer.tokenExchangeRegularExpression.exec(requestUrl);
 		const code = decodeURIComponent(urlMatches[1]);
 		const redirectUri = decodeURIComponent(urlMatches[2]);
@@ -68,10 +71,38 @@ export class GoogleOAuthServer{
 		postData += "&client_secret=" + encodeURIComponent(process.env.CLIENT_SECRET);
 		postData += "&grant_type=authorization_code";
 
-		return this.makePostRequest<IAuthTokens>(url,postData);
+		return this.makePostRequest<IRefreshToken>(url,postData)
+			.flatMap( tokens => {
+				return this.getUserInfo(tokens)
+					.map(userId => {
+						(<any>tokens).id_token = undefined;
+
+						tokens.user_id = userId;
+
+						return tokens
+					});
+			});
 	}
 
-	private refreshTokens(requestUrl: string): Rx.Observable<IAuthTokens>{
+	private getUserInfo(tokens: IRefreshToken): Rx.Observable<string>{
+		const urlObject = url.parse(GoogleOAuthServer.userInfoUrl);
+
+		var options: http.RequestOptions = {
+			hostname: urlObject.hostname,
+			port: Number(urlObject.port),
+			path: urlObject.path,
+			protocol: "https:",
+			method: "GET",
+			headers: {
+				"Authorization": "Bearer " + tokens.access_token
+			}
+		};
+
+		return this.makeHttpRequest<any>(options)
+			.map(result => result.id);
+	}
+
+	private refreshTokens(requestUrl: string): Rx.Observable<IAuthToken>{
 
 		const urlMatches = GoogleOAuthServer.refreshTokenRegularExpression.exec(requestUrl);
 		const token = decodeURIComponent(urlMatches[1]);
@@ -83,7 +114,7 @@ export class GoogleOAuthServer{
 		postData += "&client_secret=" + encodeURIComponent(process.env.CLIENT_SECRET);
 		postData += "&grant_type=refresh_token";
 
-		return this.makePostRequest<IAuthTokens>(url,postData);
+		return this.makePostRequest<IAuthToken>(url,postData);
 	}
 
 	private makePostRequest<T>(targetUrl:string, data: string): Rx.Observable<T>{
@@ -100,12 +131,20 @@ export class GoogleOAuthServer{
 			}
 		};
 
+		return this.makeHttpRequest<T>(options,data);
+	}
+
+	private makeHttpRequest<T>(options: http.RequestOptions, data?: any): Rx.Observable<T>{
+
 		return Rx.Observable.defer(() => {
 			const request = https.request(options);
 			const Observable = Rx.Observable.fromEvent(<any>request, "response")
 				.take(1);
 
-				request.write(data);
+				if(data){
+					request.write(data);
+				}
+
 				request.end();
 
 			return Observable;
