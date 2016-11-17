@@ -1,18 +1,22 @@
 
 /// <reference path="./typings/index.d.ts" />
+/// <reference path="./node_modules/rx/ts/rx.all.d.ts" />
 
-var packageJson = require("./package.json");
-var env = require('node-env-file');
+const packageJson = require("./package.json");
+const env = require('node-env-file');
+
 import fs = require('fs');
 import path = require('path');
 import express = require('express');
 import server = require("./src/node/googleOAuthServer");
+import db = require("./src/node/databaseConnection");
 
 if (fs.existsSync(__dirname + '/devEnvironment.env' )) {
 	env(__dirname + '/devEnvironment.env')
 }
 
-const authServer = new server.GoogleOAuthServer();
+const dbConnection = new db.DataBaseConnection();
+const authServer = new server.GoogleOAuthServer(dbConnection);
 
 var app = express();
 
@@ -35,6 +39,8 @@ app.get( "/version", (req, res) => {
 });
 
 const port = process.env.PORT;
-app.listen(port);
 
-console.log(`Server version ${packageJson.version} running on port ${port}`);
+dbConnection.createConnection().subscribe(_ => {
+	app.listen(port);
+	console.log(`Server version ${packageJson.version} running on port ${port}`);
+});

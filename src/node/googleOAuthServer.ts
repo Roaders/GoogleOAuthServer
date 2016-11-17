@@ -9,8 +9,11 @@ import url = require('url');
 import {IAuthUrl} from "../common/contracts";
 import {IAuthToken} from "../common/contracts";
 import {IRefreshToken} from "../common/contracts";
+import {DataBaseConnection} from "./databaseConnection";
 
 export class GoogleOAuthServer{
+
+	constructor(private _db: DataBaseConnection){}
 
 	static baseUrl = "https://accounts.google.com/o/oauth2/";
 

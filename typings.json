@@ -4,6 +4,7 @@
     "rx-node": "registry:dt/rx-node#0.0.0+20160513125029"
   },
   "dependencies": {
-    "express": "registry:npm/express#4.14.0+20160925001530"
+    "express": "registry:npm/express#4.14.0+20160925001530",
+    "mongodb": "registry:npm/mongodb#2.1.0+20161108182714"
   }
 }

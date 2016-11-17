@@ -19,6 +19,7 @@
         "index.ts",
         "src/browser/googleOAuthClient.ts",
         "src/common/contracts.d.ts",
+        "src/node/databaseConnection.ts",
         "src/node/googleOAuthServer.ts",
         "src/testHarness/testHarness.ts"
     ]

@@ -1,6 +1,4 @@
 
-/// <reference path="../../node_modules/rx/ts/rx.all.d.ts" />
-
 import {IAuthUrl, IRefreshToken, ITokenError} from "../common/contracts";
 
 interface IHeader{
