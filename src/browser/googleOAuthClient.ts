@@ -106,18 +106,17 @@ export class GoogleOAuthClient{
 
 		return Rx.Observable.defer(() => {
 
-			url += url.indexOf("?") > 0 ? "&ts=" : "?ts=";
-			url+= new Date().getTime();
-
 			const subject = new Rx.Subject<T>();
 			const request = new XMLHttpRequest();
 			request.open("GET", url);
 
-			if(headers){
-				headers.forEach( header => {
-					request.setRequestHeader(header.header, header.value);
-				});
-			}
+			headers = headers ? headers : [];
+
+			headers.push({ header: "Cache-Control", value: "no-cache" });
+
+			headers.forEach( header => {
+				request.setRequestHeader(header.header, header.value);
+			});
 
 			request.onload = function() {
 				if (request.status == 200) {
