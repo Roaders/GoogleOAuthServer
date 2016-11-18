@@ -47,7 +47,7 @@ export class GoogleOAuthClient{
 	revokeTokens(tokens: IRefreshToken): Rx.Observable<string>{
 		const url = GoogleOAuthClient.authBaseUrl + "revoke?token=" + tokens.access_token;
 
-		return this.loadJson<string>(url);
+		return this.loadJson<string>(url, null, false);
 	}
 
 	makeRequest<T>(path: string, tokens: IRefreshToken): Rx.Observable<T>{
@@ -58,11 +58,9 @@ export class GoogleOAuthClient{
 
 		return this.loadJson<T>(url,headers)
 			.retryWhen(errors => {
-
 				var tokensRefreshed: boolean;
 
 				return errors.flatMap((error) => {
-
 					if(error.status === 401 && !tokensRefreshed){
 						console.log(`Tokens expired, attempting to refresh`);
 
@@ -100,7 +98,7 @@ export class GoogleOAuthClient{
 			} );
 	}
 
-	private loadJson<T>(url: string, headers?: IHeader[]): Rx.Observable<T>{
+	private loadJson<T>(url: string, headers?: IHeader[], preventCache: boolean = true): Rx.Observable<T>{
 
 		return Rx.Observable.defer(() => {
 
@@ -110,7 +108,9 @@ export class GoogleOAuthClient{
 
 			headers = headers ? headers : [];
 
-			headers.push({ header: "Cache-Control", value: "no-cache" });
+			if(preventCache){
+				headers.push({ header: "Cache-Control", value: "no-cache" });
+			}
 
 			headers.forEach( header => {
 				request.setRequestHeader(header.header, header.value);

@@ -9,6 +9,9 @@ import url = require('url');
 import {IAuthUrl} from "../common/contracts";
 import {IAuthToken} from "../common/contracts";
 import {IRefreshToken} from "../common/contracts";
+import {IRawToken} from "../common/contracts";
+import {IUserToken} from "../common/contracts";
+
 import {DataBaseConnection} from "./databaseConnection";
 
 export class GoogleOAuthServer{
@@ -66,7 +69,7 @@ export class GoogleOAuthServer{
 		return Rx.Observable.just({authUrl: url});
 	}
 
-	private exchangeTokens(requestUrl: string): Rx.Observable<IRefreshToken>{
+	private exchangeTokens(requestUrl: string): Rx.Observable<IAuthToken>{
 		const urlMatches = GoogleOAuthServer.tokenExchangeRegularExpression.exec(requestUrl);
 		const code = decodeURIComponent(urlMatches[1]);
 		const redirectUri = decodeURIComponent(urlMatches[2]);
@@ -79,20 +82,16 @@ export class GoogleOAuthServer{
 		postData += "&client_secret=" + encodeURIComponent(process.env.CLIENT_SECRET);
 		postData += "&grant_type=authorization_code";
 
-		return this.makePostRequest<IRefreshToken>(url,postData)
-			.flatMap( tokens => {
-				return this.getUserInfo(tokens)
-					.map(userId => {
-						(<any>tokens).id_token = undefined;
-
-						tokens.user_id = userId;
-
-						return tokens
-					});
-			});
+		return this.makePostRequest<IRawToken>(url,postData)
+			.do(token => console.log(`Token loaded: ${token.access_token}`))
+			.flatMap(tokens => this.getUserInfo(tokens))
+			.flatMap(tokens => this._db.storeRefreshToken(tokens))
+			.flatMap(tokens => {
+				return Rx.Observable.return(tokens)
+			})
 	}
 
-	private getUserInfo(tokens: IRefreshToken): Rx.Observable<string>{
+	private getUserInfo(tokens: IRawToken): Rx.Observable<IUserToken>{
 		const urlObject = url.parse(GoogleOAuthServer.userInfoUrl);
 
 		var options: http.RequestOptions = {
@@ -107,7 +106,17 @@ export class GoogleOAuthServer{
 		};
 
 		return this.makeHttpRequest<any>(options)
-			.map(result => result.id);
+			.map<string>(result => result.id)
+			.map<IUserToken>(userId => {
+				console.log(`Adding user id to token: ${userId}`);
+
+				tokens.id_token = undefined;
+
+				const userToken: IUserToken = <any>tokens;
+				userToken.user_id = userId;
+
+				return userToken;
+			});
 	}
 
 	private refreshTokens(requestUrl: string): Rx.Observable<IAuthToken>{
