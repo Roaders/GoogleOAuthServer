@@ -1,18 +1,23 @@
 
-/// <reference path="./typings/index.d.ts" />
-/// <reference path="./node_modules/rx/ts/rx.all.d.ts" />
+/// <reference path="../typings/index.d.ts" />
+/// <reference path="../node_modules/rx/ts/rx.all.d.ts" />
 
-const packageJson = require("./package.json");
+const packageJson = require("../package.json");
 const env = require('node-env-file');
 
 import fs = require('fs');
 import path = require('path');
 import express = require('express');
-import server = require("./src/node/googleOAuthServer");
-import db = require("./src/node/databaseConnection");
+import server = require("./node/googleOAuthServer");
+import db = require("./node/databaseConnection");
 
-if (fs.existsSync(__dirname + '/devEnvironment.env' )) {
-	env(__dirname + '/devEnvironment.env')
+const environmentFile = path.join(__dirname,'../devEnvironment.env' );
+
+console.log(`Checking for environment file at ${environmentFile}`)
+
+if (fs.existsSync(environmentFile)) {
+	console.log(`Loading environment file`);
+	env(environmentFile)
 }
 
 const dbConnection = new db.DataBaseConnection();
@@ -21,7 +26,8 @@ const authServer = new server.GoogleOAuthServer(dbConnection);
 var app = express();
 
 app.use(express.static('src/testHarness'));
-app.use('/browser', express.static('src/browser'))
+app.use('/browser', express.static('dist/browser'));
+app.use('/testHarness', express.static('dist/testHarness'));
 
 app.get( "/api/*", (req: express.Request, res: express.Response) => {
 
@@ -45,5 +51,6 @@ const port = process.env.PORT;
 
 dbConnection.createConnection().subscribe(_ => {
 	app.listen(port);
-	console.log(`Server version ${packageJson.version} running on port ${port}`);
+
+	console.log(`Server version ${packageJson.version} running on port ${port} in environment ${process.env.NODE_ENV}`);
 });

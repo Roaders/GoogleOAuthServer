@@ -3,7 +3,8 @@
         "target": "es5",
         "module": "commonjs",
         "diagnostics": true,
-        "sourceMap": true
+        "sourceMap": true,
+        "outDir": "dist"
     },
     "compileOnSave": true,
     "buildOnSave": false,
@@ -16,7 +17,7 @@
         "!typings/**"
     ],
     "files": [
-        "index.ts",
+        "src/index.ts",
         "src/browser/googleOAuthClient.ts",
         "src/common/contracts.d.ts",
         "src/node/databaseConnection.ts",
