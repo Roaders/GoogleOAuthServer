@@ -25,24 +25,16 @@ export class DataBaseConnection{
 			.map(() => true);
 	}
 
-	public storeRefreshToken(token: IUserToken): Rx.Observable<IAuthToken>{
-		const refreshToken: IRefreshToken = <any>token;
+	public storeRefreshToken(tokens: IUserToken): Rx.Observable<IAuthToken>{
+		const refreshTokens: IRefreshToken = <any>tokens;
 
-		if( refreshToken.refresh_token != null ){
-			const collection = this._dbConnection.collection(DataBaseConnection.tokenCollectionName);
-			const insertRow = Rx.Observable.fromNodeCallback<mongodb.InsertOneWriteOpResult>(collection.insertOne.bind(collection));
-
-			return insertRow(token)
-				.map( insertionResult  => {
-					refreshToken._id = insertionResult.insertedId.toHexString();
-					console.log(`DATABASE_CONNECTION: refresh token stored with id: '${refreshToken._id}'`);
-
-					return refreshToken;
-				})
+		if( refreshTokens.refresh_token != null ){
+			return this.removeExistingRowsForUser(tokens)
+				.flatMap( () => this.insertRow(refreshTokens));
 		}
 		else {
 			console.log(`DATABASE_CONNECTION: no refresh token found. No database record update.`);
-			return Rx.Observable.return(refreshToken);
+			return Rx.Observable.return(tokens);
 		}
 	}
 
@@ -57,6 +49,32 @@ export class DataBaseConnection{
 		const findOne = Rx.Observable.fromNodeCallback<IRefreshToken>(nextFunc);
 
 		return findOne();
+	}
+
+	private removeExistingRowsForUser(tokens: IUserToken): Rx.Observable<IUserToken>{
+		console.log(`DATABASE_CONNECTION: removing rows for user '${tokens.user_id}'`);
+		const collection = this._dbConnection.collection(DataBaseConnection.tokenCollectionName);
+		const removeRows = Rx.Observable.fromNodeCallback<mongodb.DeleteWriteOpResultObject>(collection.deleteMany.bind(collection));
+		const query = { user_id: tokens.user_id};
+
+		return removeRows(query)
+			.map(result => {
+				console.log(`DATABASE_CONNECTION: Removed user rows: ${result.deletedCount}`);
+				return tokens;
+			})
+	}
+
+	private insertRow(tokens: IRefreshToken): Rx.Observable<IAuthToken>{
+		const collection = this._dbConnection.collection(DataBaseConnection.tokenCollectionName);
+		const insertRow = Rx.Observable.fromNodeCallback<mongodb.InsertOneWriteOpResult>(collection.insertOne.bind(collection));
+
+		return insertRow(tokens)
+			.map( insertionResult  => {
+				tokens._id = insertionResult.insertedId.toHexString();
+				console.log(`DATABASE_CONNECTION: refresh token stored with id: '${tokens._id}'`);
+
+				return tokens;
+			});
 	}
 
 	private handleConnectionError(error: mongodb.MongoError){
