@@ -13,13 +13,13 @@ export class DataBaseConnection{
 	private _dbConnection: mongodb.Db;
 
 	public createConnection(): Rx.Observable<boolean>{
-		console.log(`connecting to database ${process.env.MONGODB_URI}`);
+		console.log(`DATABASE_CONNECTION: connecting to database ${process.env.MONGODB_URI}`);
 		var createConnection = Rx.Observable.fromNodeCallback<mongodb.Db>(mongodb.MongoClient.connect);
 
 		return createConnection(process.env.MONGODB_URI)
 			.doOnError(error => this.handleConnectionError(error))
 			.do(db => {
-				console.log("Database connection ready");
+				console.log("DATABASE_CONNECTION: Database connection ready");
 				this._dbConnection = db;
 			})
 			.map(() => true);
@@ -28,29 +28,33 @@ export class DataBaseConnection{
 	public storeRefreshToken(token: IUserToken): Rx.Observable<IAuthToken>{
 		const refreshToken: IRefreshToken = <any>token;
 
-		const returnToken: IAuthToken = { 	access_token: token.access_token,
-											token_type: token.token_type,
-											expires_in: token.expires_in};
-
 		if( refreshToken.refresh_token != null ){
 			const collection = this._dbConnection.collection(DataBaseConnection.tokenCollectionName);
 			const insertRow = Rx.Observable.fromNodeCallback<mongodb.InsertOneWriteOpResult>(collection.insertOne.bind(collection));
 
 			return insertRow(token)
 				.map( insertionResult  => {
-					returnToken._id = insertionResult.insertedId.toHexString();
-					return returnToken;
+					refreshToken._id = insertionResult.insertedId.toHexString();
+					console.log(`DATABASE_CONNECTION: refresh token stored with id: '${refreshToken._id}'`);
+
+					return refreshToken;
 				})
 		}
 		else {
-			return Rx.Observable.return(returnToken);
+			console.log(`DATABASE_CONNECTION: no refresh token found. No database record update.`);
+			return Rx.Observable.return(refreshToken);
 		}
 	}
 
-	private getRowForUser(userID: string): Rx.Observable<IRefreshToken>{
+	public getRefreshToken(id: string): Rx.Observable<IRefreshToken>{
+		console.log(`DATABASE_CONNECTION: getting refresh token with id ${id}`);
+
 		const collection = this._dbConnection.collection(DataBaseConnection.tokenCollectionName);
-		const findOne = Rx.Observable.fromNodeCallback<IRefreshToken>(
-			collection.find({ _id: new mongodb.ObjectID(userID) }).limit(1).next.bind(collection));
+
+		const find = collection.find({ _id: new mongodb.ObjectID(id) });
+		const limit = find.limit(1);
+		const nextFunc = limit.next.bind(limit);
+		const findOne = Rx.Observable.fromNodeCallback<IRefreshToken>(nextFunc);
 
 		return findOne();
 	}

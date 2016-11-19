@@ -1,8 +1,8 @@
 
 import {GoogleOAuthClient} from "../browser/googleOAuthClient";
-import {IRefreshToken} from "../common/contracts";
+import {IAuthToken} from "../common/contracts";
 
-var tokens: IRefreshToken;
+var tokens: IAuthToken;
 var channelId: string;
 var authClient = new GoogleOAuthClient();
 
@@ -19,20 +19,22 @@ function reloadVideos(){
 		tokens = JSON.parse(tokenTextArea.value);
 	}
 
+	console.log(`TEST_HARNESS: reload video`);
+
 	clearVideoResults();
 
 	startLoad();
 }
 
-function handleTokens( result: IRefreshToken ){
+function handleTokens( result: IAuthToken ){
 	(<any>result).loadedAt = new Date();
 	const tokenTextArea = <HTMLTextAreaElement>document.getElementById('tokenResult');
 	tokenTextArea.value = JSON.stringify(result,null,4);
 
 	tokens = result;
 
-	console.log(`Tokens recieved: ${tokens.access_token}`);
-	console.log(`Loading videos...`);
+	console.log(`TEST_HARNESS: Tokens recieved: ${tokens.access_token}`);
+	console.log(`TEST_HARNESS: Loading videos...`);
 
 	startLoad();
 }
@@ -40,35 +42,38 @@ function handleTokens( result: IRefreshToken ){
 function startLoad(){
 
 	if(videosLoading){
-		console.log(`aborting video load as videos already loading`);
+		console.log(`TEST_HARNESS: aborting video load as videos already loading`);
 		return;
 	}
+
+	console.log(`TEST_HARNESS: starting video load`);
 
 	videosLoading = true;
 
 	loadChannels()
 		.map( result => handleChannels(result) )
 		.flatMap( channelId => loadVideos(channelId))
+		.finally(() => videosLoading = false )
 		.subscribe(
-			result => handleVideo(result),
-			null,
-			() => videosLoading = false
+			result => handleVideo(result)
 		);
 }
 
 function loadChannels(): Rx.Observable<any>{
+	console.log(`TEST_HARNESS: load channels`);
 	return authClient.makeRequest("channels?part=id&mine=true", tokens);
 }
 
 function handleChannels( channels ): string{
 	channelId = channels.items[0].id;
 
-	console.log(`channel loaded: ${channelId}`);
+	console.log(`TEST_HARNESS: channel loaded: ${channelId}`);
 
 	return channelId;
 }
 
 function clearVideoResults(){
+	console.log(`TEST_HARNESS: clear video results`);
 	const videoParent = document.getElementById('videoResults');
 
 	while(videoParent.lastChild){
@@ -77,6 +82,8 @@ function clearVideoResults(){
 }
 
 function loadVideos(channelId: string, pageToken?: string): Rx.Observable<any>{
+	console.log(`TEST_HARNESS: load videos for channel '${channelId}'`);
+
 	let url = "search?part=id,snippet&type=video&maxResults=50&channelId=" + channelId;
 
 	if(pageToken){
@@ -88,6 +95,7 @@ function loadVideos(channelId: string, pageToken?: string): Rx.Observable<any>{
 			var videoList = Rx.Observable.from(videoResult.items);
 
 			if( videoResult.nextPageToken ) {
+				console.log(`TEST_HARNESS: load videos for page '${videoResult.nextPageToken}'`);
 				const nextObservable = loadVideos( channelId, videoResult.nextPageToken );
 				return Rx.Observable.merge( videoList, nextObservable );
 			}

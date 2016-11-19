@@ -50,6 +50,8 @@ export class GoogleOAuthServer{
 	}
 
 	private getTokenRequestUrl(requestUrl: string): Rx.Observable<IAuthUrl> {
+		console.log(`AUTH_SERVER: creating token request url`);
+
 		const urlMatches = GoogleOAuthServer.tokenRequestUrlRegularExpression.exec(requestUrl);
 		const redirectUri = decodeURIComponent(urlMatches[1]);
 
@@ -74,6 +76,8 @@ export class GoogleOAuthServer{
 		const code = decodeURIComponent(urlMatches[1]);
 		const redirectUri = decodeURIComponent(urlMatches[2]);
 
+		console.log(`AUTH_SERVER: exchanging tokens for code '${code}'`);
+
 		let url = GoogleOAuthServer.baseUrl + "token";
 
 		var postData= "code=" + encodeURIComponent(code);
@@ -86,12 +90,12 @@ export class GoogleOAuthServer{
 			.do(token => console.log(`Token loaded: ${token.access_token}`))
 			.flatMap(tokens => this.getUserInfo(tokens))
 			.flatMap(tokens => this._db.storeRefreshToken(tokens))
-			.flatMap(tokens => {
-				return Rx.Observable.return(tokens)
-			})
+			.map(tokens => this.createAuthToken(tokens));
 	}
 
 	private getUserInfo(tokens: IRawToken): Rx.Observable<IUserToken>{
+		console.log(`AUTH_SERVER: getting user info for token ${tokens.access_token}`);
+
 		const urlObject = url.parse(GoogleOAuthServer.userInfoUrl);
 
 		var options: http.RequestOptions = {
@@ -108,9 +112,7 @@ export class GoogleOAuthServer{
 		return this.makeHttpRequest<any>(options)
 			.map<string>(result => result.id)
 			.map<IUserToken>(userId => {
-				console.log(`Adding user id to token: ${userId}`);
-
-				tokens.id_token = undefined;
+				console.log(`AUTH_SERVER: Userid ${userId} loaded for token ${tokens.access_token}`);
 
 				const userToken: IUserToken = <any>tokens;
 				userToken.user_id = userId;
@@ -120,18 +122,28 @@ export class GoogleOAuthServer{
 	}
 
 	private refreshTokens(requestUrl: string): Rx.Observable<IAuthToken>{
-
 		const urlMatches = GoogleOAuthServer.refreshTokenRegularExpression.exec(requestUrl);
-		const token = decodeURIComponent(urlMatches[1]);
+		const id = decodeURIComponent(urlMatches[1]);
+
+		console.log(`AUTH_SERVER: refreshTokens for id: ${id}`);
+
+		return this._db.getRefreshToken(id)
+			.flatMap( refreshToken => this.makeRefreshTokenCall(refreshToken));
+	}
+
+	private makeRefreshTokenCall(refreshToken: IRefreshToken): Rx.Observable<IAuthToken>{
+		console.log(`AUTH_SERVER: making refresh token call for ${refreshToken.refresh_token}`);
 
 		let url = GoogleOAuthServer.baseUrl + "token";
 
-		var postData= "refresh_token=" + encodeURIComponent(token);
+		var postData= "refresh_token=" + encodeURIComponent(refreshToken.refresh_token);
 		postData += "&client_id=" + encodeURIComponent(process.env.CLIENT_ID);
 		postData += "&client_secret=" + encodeURIComponent(process.env.CLIENT_SECRET);
 		postData += "&grant_type=refresh_token";
 
-		return this.makePostRequest<IAuthToken>(url,postData);
+		return this.makePostRequest<IAuthToken>(url,postData)
+			.do( tokens => console.log(`AUTH_SERVER: token refreshed: ${tokens.access_token}`) )
+			.map(token => this.createAuthToken(token,refreshToken._id))
 	}
 
 	private makePostRequest<T>(targetUrl:string, data: string): Rx.Observable<T>{
@@ -171,5 +183,12 @@ export class GoogleOAuthServer{
 			.map(function(allData){
 				return JSON.parse(allData.join("")) as T;
 			});
+	}
+
+	private createAuthToken(refreshToken: IRefreshToken | IAuthToken, id?: string): IAuthToken{
+		return { 	access_token: refreshToken.access_token,
+					token_type: refreshToken.token_type,
+					expires_in: refreshToken.expires_in,
+					_id: id ? id : refreshToken._id};
 	}
 }

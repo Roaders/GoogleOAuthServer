@@ -1,5 +1,5 @@
 
-import {IAuthUrl, IRefreshToken, ITokenError} from "../common/contracts";
+import {IAuthUrl, IAuthToken, ITokenError} from "../common/contracts";
 
 interface IHeader{
 	header: string;
@@ -15,17 +15,17 @@ export class GoogleOAuthClient{
 	static youTubeBaseUrl = "https://www.googleapis.com/youtube/v3/";
 	static codeRegularExpression = /[?&]code=([^&]+)/
 
-	private _authTokensStream: Rx.Subject<IRefreshToken>;
+	private _authTokensStream: Rx.Subject<IAuthToken>;
 
-	createTokensStream(): Rx.Observable<IRefreshToken>{
+	createTokensStream(): Rx.Observable<IAuthToken>{
 		const regExResults = GoogleOAuthClient.codeRegularExpression.exec(window.location.href)
 
-		this._authTokensStream = new Rx.Subject<IRefreshToken>();
+		this._authTokensStream = new Rx.Subject<IAuthToken>();
 
 		if(regExResults){
 			const code = regExResults[1];
 
-			console.log(`GoogleOAuthClient: auth code found, attempting to exchange for tokens`);
+			console.log(`AUTH_CLIENT: GoogleOAuthClient: auth code found, attempting to exchange for tokens`);
 
 			return this.exchangeTokens(code)
 				.merge(this._authTokensStream);
@@ -34,23 +34,28 @@ export class GoogleOAuthClient{
 		return this._authTokensStream;
 	}
 
-		requestTokens(){
+	requestTokens(){
+		console.log(`AUTH_CLIENT: request tokens`);
+
 		const redirectUri = window.location.origin;
 		const requestUrl = this._baseUrl + "/api/tokenRequestUrl/redirect/" + encodeURIComponent(redirectUri);
 
 		this.loadJson<IAuthUrl>( requestUrl )
 			.subscribe( data => {
+				console.log(`AUTH_CLIENT: token request url loaded: '${data.authUrl}'`);
 				window.location.href = data.authUrl;
 			});
 	}
 
-	revokeTokens(tokens: IRefreshToken): Rx.Observable<string>{
+	revokeTokens(tokens: IAuthToken): Rx.Observable<string>{
+		console.log(`AUTH_CLIENT: revoke tokens`);
 		const url = GoogleOAuthClient.authBaseUrl + "revoke?token=" + tokens.access_token;
 
 		return this.loadJson<string>(url, null, false);
 	}
 
-	makeRequest<T>(path: string, tokens: IRefreshToken): Rx.Observable<T>{
+	makeRequest<T>(path: string, tokens: IAuthToken): Rx.Observable<T>{
+		console.log(`AUTH_CLIENT: make request: '${path}'`);
 		const url = GoogleOAuthClient.youTubeBaseUrl + path;
 
 		const authorizationHeader: IHeader = {header: "Authorization", value: "Bearer " + tokens.access_token};
@@ -74,26 +79,29 @@ export class GoogleOAuthClient{
 			});
 	}
 
-	private refreshtokens(oldTokens: IRefreshToken): Rx.Observable<IRefreshToken>{
-		const requestUrl = this._baseUrl + "/api/refreshToken/" + encodeURIComponent(oldTokens.refresh_token);
+	private refreshtokens(oldTokens: IAuthToken): Rx.Observable<IAuthToken>{
+		console.log(`AUTH_CLIENT: refresh tokens`);
+		const requestUrl = this._baseUrl + "/api/refreshToken/" + encodeURIComponent(oldTokens._id);
 
-		return this.loadJson<IRefreshToken>( requestUrl )
+		return this.loadJson<IAuthToken>( requestUrl )
 			.do( refreshedTokens => {
-				refreshedTokens.refresh_token = oldTokens.refresh_token;
-
+				console.log(`AUTH_CLIENT: tokens refreshed`);
 				this._authTokensStream.onNext(refreshedTokens);
 			});
 	}
 
-	private exchangeTokens(code: string): Rx.Observable<IRefreshToken>{
+	private exchangeTokens(code: string): Rx.Observable<IAuthToken>{
+		console.log(`AUTH_CLIENT: exchange code for token '${code}'`);
 		const redirectUri = window.location.origin;
 		const requestUrl = this._baseUrl + "/api/exchangeTokens/code/" + encodeURIComponent(code) + "/redirect/" + encodeURIComponent(redirectUri);
 
-		return this.loadJson<IRefreshToken>( requestUrl )
+		return this.loadJson<IAuthToken>( requestUrl )
 			.do( tokens => {
 				const tokenError = <any>tokens as ITokenError;
 				if(tokenError.error){
 					throw new Error("Error exchanging tokens: " + tokenError.error + ": " + tokenError.error_description)
+				} else{
+					console.log(`AUTH_CLIENT: tokens exchanged`);
 				}
 			} );
 	}
