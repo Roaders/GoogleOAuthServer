@@ -86,11 +86,26 @@ export class GoogleOAuthServer{
 		postData += "&client_secret=" + encodeURIComponent(process.env.CLIENT_SECRET);
 		postData += "&grant_type=authorization_code";
 
+		var rawToken: IRawToken;
+
 		return this.makePostRequest<IRawToken>(url,postData)
+			.do(token => rawToken = token)
 			.do(token => console.log(`Token loaded: ${token.access_token}`))
 			.flatMap(tokens => this.getUserInfo(tokens))
 			.flatMap(tokens => this._db.storeRefreshToken(tokens))
-			.map(tokens => this.createAuthToken(tokens));
+			.map(tokens => this.createAuthToken(tokens))
+			.catch( error => {
+				const errorStream = Rx.Observable.throw<IAuthToken>(error);
+				if(rawToken){
+					console.log(`AUTH_SERVER: error exchanging tokens. Revoking Tokens. Error: ${error}`);
+					return this.revokeToken(rawToken)
+						.flatMap(() => errorStream);
+				} else {
+					console.log(`AUTH_SERVER: error exchanging tokens. No Token to revoke. Error: ${error}`);
+				const errorStream = Rx.Observable.throw<IAuthToken>(error);
+					return 
+				}
+			});
 	}
 
 	private getUserInfo(tokens: IRawToken): Rx.Observable<IUserToken>{
@@ -144,6 +159,25 @@ export class GoogleOAuthServer{
 		return this.makePostRequest<IAuthToken>(url,postData)
 			.do( tokens => console.log(`AUTH_SERVER: token refreshed: ${tokens.access_token}`) )
 			.map(token => this.createAuthToken(token,refreshToken._id))
+	}
+
+	private revokeToken(rawToken: IRawToken): Rx.Observable<any>{
+		console.log(`AUTH_SERVER: revoking token ${rawToken.access_token}`);
+
+		const revokeUrl = GoogleOAuthServer.baseUrl + "revoke?token=" + rawToken.access_token;
+
+		var urlObject = url.parse(revokeUrl);
+
+		var options: http.RequestOptions = {
+			hostname: urlObject.hostname,
+			port: Number(urlObject.port),
+			path: urlObject.path,
+			protocol: "https:",
+			method: "GET"
+		};
+
+		return this.makeHttpRequest<any>(options)
+			.do(result => console.log(`AUTH_SERVER: token revoked`));
 	}
 
 	private makePostRequest<T>(targetUrl:string, data: string): Rx.Observable<T>{

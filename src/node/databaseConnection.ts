@@ -30,7 +30,7 @@ export class DataBaseConnection{
 
 		if( refreshTokens.refresh_token != null ){
 			return this.removeExistingRowsForUser(tokens)
-				.flatMap( () => this.insertRow(refreshTokens));
+				.flatMap(() => this.insertRow(refreshTokens));
 		}
 		else {
 			console.log(`DATABASE_CONNECTION: no refresh token found. No database record update.`);
@@ -60,13 +60,16 @@ export class DataBaseConnection{
 		console.log(`DATABASE_CONNECTION: getting user tokens for user ${tokens.user_id}`);
 		const collection = this._dbConnection.collection(DataBaseConnection.tokenCollectionName);
 
-		const find = collection.find({ user_id: new mongodb.ObjectID(tokens.user_id) });
+		const find = collection.find({ user_id: tokens.user_id });
 		const limit = find.limit(1);
 		const nextFunc = limit.next.bind(limit);
 		const findOne = Rx.Observable.fromNodeCallback<IAuthToken>(nextFunc);
 
 		return findOne()
 			.do(existingTokens => {
+				if(!existingTokens){
+					throw Error(`DATABASE_CONNECTION: no existing refresh token found`);
+				}
 				console.log(`DATABASE_CONNECTION: appending existing id to token: '${existingTokens._id}'`);
 				tokens._id = existingTokens._id
 			});
