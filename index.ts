@@ -30,7 +30,10 @@ app.get( "/api/*", (req: express.Request, res: express.Response) => {
 			result => {
 				res.send(result);
 			},
-			error => console.log(`Error: ${error}`)
+			error => {
+				console.log(`Error: ${error}`);
+				res.status(500).send(`{"error": "${error}"}`);
+			}
 		);
 });
 

@@ -34,7 +34,7 @@ export class DataBaseConnection{
 		}
 		else {
 			console.log(`DATABASE_CONNECTION: no refresh token found. No database record update.`);
-			return Rx.Observable.return(tokens);
+			return this.getUserTokens(tokens)
 		}
 	}
 
@@ -48,7 +48,28 @@ export class DataBaseConnection{
 		const nextFunc = limit.next.bind(limit);
 		const findOne = Rx.Observable.fromNodeCallback<IRefreshToken>(nextFunc);
 
-		return findOne();
+		return findOne()
+			.do(tokens => {
+				if(!tokens){
+					throw new Error("No refresh token found, Please log out and log back in again.");
+				}
+			})
+	}
+
+	private getUserTokens(tokens: IUserToken): Rx.Observable<IAuthToken>{
+		console.log(`DATABASE_CONNECTION: getting user tokens for user ${tokens.user_id}`);
+		const collection = this._dbConnection.collection(DataBaseConnection.tokenCollectionName);
+
+		const find = collection.find({ user_id: new mongodb.ObjectID(tokens.user_id) });
+		const limit = find.limit(1);
+		const nextFunc = limit.next.bind(limit);
+		const findOne = Rx.Observable.fromNodeCallback<IAuthToken>(nextFunc);
+
+		return findOne()
+			.do(existingTokens => {
+				console.log(`DATABASE_CONNECTION: appending existing id to token: '${existingTokens._id}'`);
+				tokens._id = existingTokens._id
+			});
 	}
 
 	private removeExistingRowsForUser(tokens: IUserToken): Rx.Observable<IUserToken>{
