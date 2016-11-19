@@ -2,9 +2,10 @@
 import Rx = require('rx');
 import mongodb = require('mongodb');
 
-import {IRefreshToken} from "../common/contracts";
 import {IAuthToken} from "../common/contracts";
-import {IUserToken} from "../common/contracts";
+
+import {IRefreshToken} from "./contracts";
+import {IUserToken} from "./contracts";
 
 export class DataBaseConnection{
 

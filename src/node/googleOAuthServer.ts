@@ -8,9 +8,9 @@ import url = require('url');
 
 import {IAuthUrl} from "../common/contracts";
 import {IAuthToken} from "../common/contracts";
-import {IRefreshToken} from "../common/contracts";
-import {IRawToken} from "../common/contracts";
-import {IUserToken} from "../common/contracts";
+import {IRefreshToken} from "./contracts";
+import {IUserToken} from "./contracts";
+import {IRawToken} from "./contracts";
 
 import {DataBaseConnection} from "./databaseConnection";
 
