@@ -25,9 +25,12 @@ const authServer = new server.GoogleOAuthServer(dbConnection);
 
 var app = express();
 
-app.use(express.static('src/testHarness'));
-app.use('/browser', express.static('dist/browser'));
-app.use('/testHarness', express.static('dist/testHarness'));
+if(process.env.NODE_ENV != "production"){
+	console.log(`Setting up test harness`);
+	app.use(express.static('src/testHarness'));
+	app.use('/browser', express.static('dist/browser'));
+	app.use('/testHarness', express.static('dist/testHarness'));
+}
 
 app.get( "/api/*", (req: express.Request, res: express.Response) => {
 
