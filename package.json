@@ -23,8 +23,7 @@
     "push:git": "git push --tags origin master",
     "version:patch": "npm version patch",
     "postversion:patch": "npm run push:git",
-    "deploy": "npm run compile && npm run version:patch && npm run push:git",
-    "prepublish": "npm run deploy"
+    "deploy": "npm run compile && npm run version:patch && npm run push:git"
   },
   "repository": {
     "type": "git",
