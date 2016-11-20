@@ -1,6 +1,6 @@
 {
   "name": "googleOAuthServer",
-  "version": "1.0.21",
+  "version": "1.0.22",
   "engines": {
     "node": "6.9.1",
     "npm": "3.10.8"
