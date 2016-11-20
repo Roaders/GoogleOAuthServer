@@ -17,6 +17,12 @@ export class GoogleOAuthClient{
 
 	private _authTokensStream: Rx.Subject<IAuthToken>;
 
+	/**
+	This stream emits access tokens when tokens are initially exchanged and every time tokens are refreshed.
+	The tokens emitted by this stream should be sstored in local storage for authentication of calls during the next
+	browser session.
+	**/
+
 	createTokensStream(): Rx.Observable<IAuthToken>{
 		const regExResults = GoogleOAuthClient.codeRegularExpression.exec(window.location.href)
 
