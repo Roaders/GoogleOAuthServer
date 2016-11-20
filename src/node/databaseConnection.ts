@@ -7,13 +7,13 @@ import {IAuthToken} from "../../contracts/common";
 import {IRefreshToken,IUserToken} from "../../contracts/node";
 
 export class DataBaseConnection{
-
-	static tokenCollectionName = "tokens";
-
+	private _tokenCollectionName = process.env.TOKEN_COLLECTION_NAME;
 	private _dbConnection: mongodb.Db;
 
 	public createConnection(): Rx.Observable<boolean>{
+
 		console.log(`DATABASE_CONNECTION: connecting to database ${process.env.MONGODB_URI}`);
+		console.log(`DATABASE_CONNECTION: using collection ${this._tokenCollectionName} to store tokens`);
 		var createConnection = Rx.Observable.fromNodeCallback<mongodb.Db>(mongodb.MongoClient.connect);
 
 		return createConnection(process.env.MONGODB_URI)
@@ -41,7 +41,7 @@ export class DataBaseConnection{
 	public getRefreshToken(id: string): Rx.Observable<IRefreshToken>{
 		console.log(`DATABASE_CONNECTION: getting refresh token with id ${id}`);
 
-		const collection = this._dbConnection.collection(DataBaseConnection.tokenCollectionName);
+		const collection = this._dbConnection.collection(this._tokenCollectionName);
 
 		const find = collection.find({ _id: new mongodb.ObjectID(id) });
 		const limit = find.limit(1);
@@ -58,7 +58,7 @@ export class DataBaseConnection{
 
 	private getUserTokens(tokens: IUserToken): Rx.Observable<IAuthToken>{
 		console.log(`DATABASE_CONNECTION: getting existing tokens for user ${tokens.user_id}`);
-		const collection = this._dbConnection.collection(DataBaseConnection.tokenCollectionName);
+		const collection = this._dbConnection.collection(this._tokenCollectionName);
 
 		const find = collection.find({ user_id: tokens.user_id });
 		const limit = find.limit(1);
@@ -79,7 +79,7 @@ export class DataBaseConnection{
 
 	private removeExistingRowsForUser(tokens: IUserToken): Rx.Observable<IUserToken>{
 		console.log(`DATABASE_CONNECTION: removing rows for user '${tokens.user_id}'`);
-		const collection = this._dbConnection.collection(DataBaseConnection.tokenCollectionName);
+		const collection = this._dbConnection.collection(this._tokenCollectionName);
 		const removeRows = Rx.Observable.fromNodeCallback<mongodb.DeleteWriteOpResultObject>(collection.deleteMany.bind(collection));
 		const query = { user_id: tokens.user_id};
 
@@ -91,7 +91,7 @@ export class DataBaseConnection{
 	}
 
 	private insertRow(tokens: IRefreshToken): Rx.Observable<IAuthToken>{
-		const collection = this._dbConnection.collection(DataBaseConnection.tokenCollectionName);
+		const collection = this._dbConnection.collection(this._tokenCollectionName);
 		const insertRow = Rx.Observable.fromNodeCallback<mongodb.InsertOneWriteOpResult>(collection.insertOne.bind(collection));
 
 		return insertRow(tokens)
