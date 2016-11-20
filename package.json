@@ -9,7 +9,7 @@
   "main": "index.js",
   "scripts": {
     "compile": "tsc",
-    "start": "node index.js",
+    "start": "node dist/index.js",
     "launch": "npm run compile && npm start",
     "typings": "typings install",
     "postinstall": "npm run typings && npm run compile",
