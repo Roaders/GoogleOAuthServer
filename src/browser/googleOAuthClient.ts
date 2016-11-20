@@ -1,5 +1,5 @@
 
-import {IAuthUrl, IAuthToken, ITokenError} from "../common/contracts";
+import {IAuthUrl, IAuthToken, ITokenError} from "../../contracts/common";
 
 interface IHeader{
 	header: string;

@@ -1,5 +1,5 @@
 
-import {IAuthToken} from "../common/contracts";
+import {IAuthToken} from "./common";
 
 export interface IRawToken extends IAuthToken{
 	"id_token": string;

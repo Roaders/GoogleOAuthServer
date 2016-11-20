@@ -6,11 +6,8 @@ import http = require('http');
 import https = require('https');
 import url = require('url');
 
-import {IAuthUrl} from "../common/contracts";
-import {IAuthToken} from "../common/contracts";
-import {IRefreshToken} from "./contracts";
-import {IUserToken} from "./contracts";
-import {IRawToken} from "./contracts";
+import {IAuthUrl, IAuthToken} from "../../contracts/common";
+import {IRefreshToken,IUserToken,IRawToken} from "../../contracts/node";
 
 import {DataBaseConnection} from "./databaseConnection";
 

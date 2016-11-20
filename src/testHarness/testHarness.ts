@@ -1,6 +1,6 @@
 
 import {GoogleOAuthClient} from "../browser/googleOAuthClient";
-import {IAuthToken} from "../common/contracts";
+import {IAuthToken} from "../../contracts/common";
 
 var tokens: IAuthToken;
 var channelId: string;

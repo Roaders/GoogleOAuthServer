@@ -4,24 +4,17 @@
         "module": "commonjs",
         "diagnostics": true,
         "sourceMap": true,
-        "outDir": "dist"
+        "outDir": "dist",
+        "declaration": true
     },
     "compileOnSave": true,
     "buildOnSave": false,
     "atom": {
-        "rewriteTsconfig": true
+        "rewriteTsconfig": false
     },
     "filesGlob": [
         "**/*.ts",
         "!node_modules/**",
         "!typings/**"
-    ],
-    "files": [
-        "src/index.ts",
-        "src/browser/googleOAuthClient.ts",
-        "src/common/contracts.d.ts",
-        "src/node/databaseConnection.ts",
-        "src/node/googleOAuthServer.ts",
-        "src/testHarness/testHarness.ts"
     ]
 }
