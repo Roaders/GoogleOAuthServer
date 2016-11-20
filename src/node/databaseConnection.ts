@@ -52,13 +52,13 @@ export class DataBaseConnection{
 		return findOne()
 			.do(tokens => {
 				if(!tokens){
-					throw new Error("No refresh token found, Please log out and log back in again.");
+					throw new Error("DATABASE_CONNECTION: No refresh token found, Please log out and log back in again.");
 				}
 			})
 	}
 
 	private getUserTokens(tokens: IUserToken): Rx.Observable<IAuthToken>{
-		console.log(`DATABASE_CONNECTION: getting user tokens for user ${tokens.user_id}`);
+		console.log(`DATABASE_CONNECTION: getting existing tokens for user ${tokens.user_id}`);
 		const collection = this._dbConnection.collection(DataBaseConnection.tokenCollectionName);
 
 		const find = collection.find({ user_id: tokens.user_id });
@@ -67,12 +67,14 @@ export class DataBaseConnection{
 		const findOne = Rx.Observable.fromNodeCallback<IAuthToken>(nextFunc);
 
 		return findOne()
-			.do(existingTokens => {
+			.map(existingTokens => {
 				if(!existingTokens){
 					throw Error(`DATABASE_CONNECTION: no existing refresh token found`);
 				}
-				console.log(`DATABASE_CONNECTION: appending existing id to token: '${existingTokens._id}'`);
+				console.log(`DATABASE_CONNECTION: appending existing id '${existingTokens._id}' to token: ${tokens.access_token}` );
 				tokens._id = existingTokens._id
+
+				return tokens;
 			});
 	}
 

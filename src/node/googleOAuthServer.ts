@@ -41,7 +41,7 @@ export class GoogleOAuthServer{
 			response = this.exchangeTokens(request.url);
 		}
 		else{
-			const warning = `api method not found for ${request.url}`;
+			const warning = `AUTH_SERVER: api method not found for ${request.url}`;
 			console.warn(warning);
 			return Rx.Observable.return(warning);
 		}
@@ -76,7 +76,7 @@ export class GoogleOAuthServer{
 		const code = decodeURIComponent(urlMatches[1]);
 		const redirectUri = decodeURIComponent(urlMatches[2]);
 
-		console.log(`AUTH_SERVER: exchanging tokens for code '${code}'`);
+		console.log(`AUTH_SERVER: exchanging code '${code}' for tokens`);
 
 		let url = GoogleOAuthServer.baseUrl + "token";
 
@@ -90,7 +90,7 @@ export class GoogleOAuthServer{
 
 		return this.makePostRequest<IRawToken>(url,postData)
 			.do(token => rawToken = token)
-			.do(token => console.log(`Token loaded: ${token.access_token}`))
+			.do(token => console.log(`AUTH_SERVER: Access token loaded: ${token.access_token}`))
 			.flatMap(tokens => this.getUserInfo(tokens))
 			.flatMap(tokens => this._db.storeRefreshToken(tokens))
 			.map(tokens => this.createAuthToken(tokens))
@@ -105,7 +105,8 @@ export class GoogleOAuthServer{
 				const errorStream = Rx.Observable.throw<IAuthToken>(error);
 					return 
 				}
-			});
+			})
+			.do(tokens => console.log(`AUTH_SERVER: tokens returned to client: ${tokens.access_token}`));
 	}
 
 	private getUserInfo(tokens: IRawToken): Rx.Observable<IUserToken>{
