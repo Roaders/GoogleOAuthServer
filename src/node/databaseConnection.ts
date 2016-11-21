@@ -13,7 +13,7 @@ export class DataBaseConnection{
 	public createConnection(): Rx.Observable<boolean>{
 
 		console.log(`DATABASE_CONNECTION: connecting to database ${process.env.MONGODB_URI}`);
-		console.log(`DATABASE_CONNECTION: using collection ${this._tokenCollectionName} to store tokens`);
+		console.log(`DATABASE_CONNECTION: using collection '${this._tokenCollectionName}' to store tokens`);
 		var createConnection = Rx.Observable.fromNodeCallback<mongodb.Db>(mongodb.MongoClient.connect);
 
 		return createConnection(process.env.MONGODB_URI)
