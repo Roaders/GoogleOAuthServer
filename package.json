@@ -6,7 +6,8 @@
     "npm": "3.10.8"
   },
   "description": "OAuth Server for authenticating users to access google apis",
-  "main": "dist/node/googleOAuthServer.js",
+  "main": "./dist/index.js",
+  "types": "dist/index.d.ts",
   "files": [
     "dist/node/",
     "dist/browser/",
