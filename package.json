@@ -6,7 +6,7 @@
     "npm": "3.10.8"
   },
   "description": "OAuth Server for authenticating users to access google apis",
-  "main": "./dist/exports.js",
+  "main": "dist/exports.js",
   "types": "dist/exports.d.ts",
   "files": [
     "dist/node/",
