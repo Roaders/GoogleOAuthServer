@@ -30,6 +30,7 @@ if(process.env.NODE_ENV != "production"){
 	app.use(express.static('src/testHarness'));
 	app.use('/browser', express.static('dist/browser'));
 	app.use('/testHarness', express.static('dist/testHarness'));
+	app.use('/node_modules', express.static('node_modules'));
 }
 
 app.get( "/api/*", (req: express.Request, res: express.Response) => {

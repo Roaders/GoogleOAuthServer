@@ -1,4 +1,5 @@
 
+import Rx = require('rx');
 import {IAuthUrl, IAuthToken, ITokenError} from "../../contracts/common";
 
 interface IHeader{

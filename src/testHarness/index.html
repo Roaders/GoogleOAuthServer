@@ -6,17 +6,20 @@
 
 	<title>Google Authentication Test Harness</title>
 
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/4.1.0/rx.all.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/systemjs/0.19.41/system.js"></script>
 
 	<script>
 		System.defaultJSExtensions = true;
 
 		SystemJS.config({
-			baseURL: '/'
+			paths: {
+				'*': 'node_modules/*',
+				'testHarness/*': 'testHarness/*'
+			},
+			packageConfigPaths: ['./node_modules/*/package.json']
 		});
 
-		SystemJS.import('testHarness/testHarness.js');
+		SystemJS.import('testHarness/testHarness');
 	</script>
 
 </head>
