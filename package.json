@@ -7,7 +7,7 @@
   },
   "description": "OAuth Server for authenticating users to access google apis",
   "main": "dist/exports.js",
-  "types": "dist/exports.d.ts",
+  "typings": "dist/exports.d.ts",
   "files": [
     "dist/node/",
     "dist/browser/",
@@ -15,7 +15,6 @@
     "dist/exports.d.ts",
     "contracts/"
   ],
-  "typings": "dist/index",
   "scripts": {
     "compile": "tsc",
     "start": "node dist/index.js",
