@@ -58,3 +58,9 @@ dbConnection.createConnection().subscribe(_ => {
 
 	console.log(`Server version ${packageJson.version} running on port ${port} in environment ${process.env.NODE_ENV}`);
 });
+
+import * as Common from "../contracts/common";
+import * as Browser from "./browser/googleOAuthClient";
+import * as Node from "./node/exports";
+
+export { Common, Browser, Node };
