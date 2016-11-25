@@ -47,4 +47,70 @@ Start the server
 
 `npm start`
 
-In non-prod environments (anything where the environment variable `NODE_ENV` is not `production`) there will be a test harness app availiable at `http://localhost:8080` (assuming you are still running on port `8080`). For this test app to work you must add the scope `https://www.googleapis.com/auth/youtube.readonly` to the SCOPES environment variable. This app will load a list of youTube videos for a channel that belongs to the account that you authenticate.
+In non-prod environments (anything where the environment variable `NODE_ENV` is not `production`) there will be a test harness app available at `http://localhost:8080` (assuming you are still running on port `8080`). For this test app to work you must add the scope `https://www.googleapis.com/auth/youtube.readonly` to the SCOPES environment variable. This app will load a list of YouTube videos for a channel that belongs to the account that you authenticate.
+
+### Installing via npm
+
+The project can be installed as a dependency in another project. An external project may wish to use the client code to make authorised requests or it may use the server code to embed the authorisation server in an existing express app.
+
+Install the project as a dependency using npm:
+
+`npm install google-oauth-server --save`
+
+#### Server
+
+Import the package:
+
+`import googleOAuth = require("google-oauth-server");`
+
+Instantiate server:
+
+```
+var dbConnection = new googleOAuth.DataBaseConnection();
+var authServer = new googleOAuth.GoogleOAuthServer(dbConnection);
+```
+
+Set up express routes to handle authorisation requests:
+
+```
+var app = express();
+
+app.get( "/auth/*", (req: express.Request, res: express.Response) => {
+
+	authServer.handleExpressRequest(req)
+		.subscribe(
+			result => {
+				res.send(result);
+			},
+			error => {
+				console.log(`Error: ${error}`);
+				res.status(500).send(`{"error": "${error}"}`);
+			}
+		);
+});
+```
+
+#### Client
+
+Import client:
+
+`import {GoogleOAuthClient, IAuthToken} from "google-oauth-server/dist/browser";`
+
+Store tokens when they are created or refreshed:
+
+```
+var tokens: IAuthToken;
+var authClient = new GoogleOAuthClient("http://urlOfMyServer.com/routeToServer");
+
+authClient.createTokensStream()
+	.do( result => tokens = result)
+	.subscribe();
+```
+
+Make a request:
+
+`authClient.makeRequest("channels?part=id&mine=true", tokens);`
+
+## Remaining Issues
+
+- need to support CORS on the server
