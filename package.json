@@ -6,13 +6,15 @@
     "npm": "3.10.8"
   },
   "description": "OAuth Server for authenticating users to access google apis",
-  "main": "dist/exports.js",
-  "typings": "dist/exports.d.ts",
+  "main": "dist/node.js",
+  "typings": "dist/node.d.ts",
   "files": [
     "dist/node/",
     "dist/browser/",
-    "dist/exports.js",
-    "dist/exports.d.ts",
+    "dist/node.js",
+    "dist/node.d.ts",
+    "dist/browser.js",
+    "dist/browser.d.ts",
     "contracts/"
   ],
   "scripts": {
