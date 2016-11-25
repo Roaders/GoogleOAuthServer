@@ -41,7 +41,14 @@ Install dependencies. This will also compile the typescript files.
 
 `npm install`
 
-Set environment variables or update devDependencies.env (this will set environment variables). You will need to enter your `CLIENT_ID` and `CLIENT_SECRET` from the Google Developers Console. Enter any required authorisation scopes that your application will use and you will need to enter the url of your mongoDB.
+Set environment variables or update devDependencies.env (this will set environment variables).
+
+You will need to enter your `CLIENT_ID` and `CLIENT_SECRET` from the Google Developers Console. Enter any required authorisation `SCOPES` that your application will use and you will need to enter the `MONGODB_URI` of your mongoDB.
+
+Other environmental variables are:
+
+- `TOKEN_COLLECTION_NAME` to specify the name of the collection to store the tokens in in the mongoDB
+- `permittedOrigin` optionally specify this to allow applications on another domain to access the server
 
 Start the server
 
@@ -110,7 +117,3 @@ authClient.createTokensStream()
 Make a request:
 
 `authClient.makeRequest("channels?part=id&mine=true", tokens);`
-
-## Remaining Issues
-
-- need to support CORS on the server

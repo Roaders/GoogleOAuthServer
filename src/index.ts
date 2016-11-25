@@ -10,6 +10,7 @@ import path = require('path');
 import express = require('express');
 import server = require("./node/googleOAuthServer");
 import db = require("./node/databaseConnection");
+var cors = require('cors');
 
 const environmentFile = path.join(__dirname,'../devEnvironment.env' );
 
@@ -24,6 +25,14 @@ const dbConnection = new db.DataBaseConnection();
 const authServer = new server.GoogleOAuthServer(dbConnection);
 
 var app = express();
+
+if(process.env.permittedOrigin){
+
+	console.log(`Setting up CORS for ${process.env.permittedOrigin}`);
+
+	app.use(cors({origin: process.env.permittedOrigin}));
+}
+
 
 if(process.env.NODE_ENV != "production"){
 	console.log(`Setting up test harness`);
