@@ -9,11 +9,10 @@ interface IHeader{
 
 export class GoogleOAuthClient{
 
-	constructor(private _baseUrl: string = "" ){
+	constructor(private _baseUrl: string = "/api" ){
 	}
 
 	static authBaseUrl = "https://accounts.google.com/o/oauth2/";
-	static youTubeBaseUrl = "https://www.googleapis.com/youtube/v3/";
 	static codeRegularExpression = /[?&]code=([^&]+)/
 
 	private _authTokensStream: Rx.Subject<IAuthToken>;
@@ -45,7 +44,7 @@ export class GoogleOAuthClient{
 		console.log(`AUTH_CLIENT: request tokens`);
 
 		const redirectUri = window.location.origin;
-		const requestUrl = this._baseUrl + "/api/tokenRequestUrl/redirect/" + encodeURIComponent(redirectUri);
+		const requestUrl = this._baseUrl + "/tokenRequestUrl/redirect/" + encodeURIComponent(redirectUri);
 
 		this.loadJson<IAuthUrl>( requestUrl )
 			.subscribe( data => {
@@ -61,9 +60,8 @@ export class GoogleOAuthClient{
 		return this.loadJson<string>(url, null, false);
 	}
 
-	makeRequest<T>(path: string, tokens: IAuthToken): Rx.Observable<T>{
-		console.log(`AUTH_CLIENT: make request: '${path}'`);
-		const url = GoogleOAuthClient.youTubeBaseUrl + path;
+	makeRequest<T>(url: string, tokens: IAuthToken): Rx.Observable<T>{
+		console.log(`AUTH_CLIENT: make request: '${url}'`);
 
 		const authorizationHeader: IHeader = {header: "Authorization", value: "Bearer " + tokens.access_token};
 		const headers = [authorizationHeader];
@@ -88,7 +86,7 @@ export class GoogleOAuthClient{
 
 	private refreshtokens(oldTokens: IAuthToken): Rx.Observable<IAuthToken>{
 		console.log(`AUTH_CLIENT: refresh tokens`);
-		const requestUrl = this._baseUrl + "/api/refreshToken/" + encodeURIComponent(oldTokens._id);
+		const requestUrl = this._baseUrl + "/refreshToken/" + encodeURIComponent(oldTokens._id);
 
 		return this.loadJson<IAuthToken>( requestUrl )
 			.do( refreshedTokens => {
@@ -100,7 +98,7 @@ export class GoogleOAuthClient{
 	private exchangeTokens(code: string): Rx.Observable<IAuthToken>{
 		console.log(`AUTH_CLIENT: exchange code for token '${code}'`);
 		const redirectUri = window.location.origin;
-		const requestUrl = this._baseUrl + "/api/exchangeTokens/code/" + encodeURIComponent(code) + "/redirect/" + encodeURIComponent(redirectUri);
+		const requestUrl = this._baseUrl + "/exchangeTokens/code/" + encodeURIComponent(code) + "/redirect/" + encodeURIComponent(redirectUri);
 
 		return this.loadJson<IAuthToken>( requestUrl )
 			.do( tokens => {

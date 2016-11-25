@@ -8,6 +8,8 @@ var authClient = new GoogleOAuthClient();
 
 var videosLoading: boolean;
 
+var youTubeBase = "https://www.googleapis.com/youtube/v3/"
+
 function revokeTokens(){
 	authClient.revokeTokens(tokens).subscribe();
 }
@@ -61,7 +63,7 @@ function startLoad(){
 
 function loadChannels(): Rx.Observable<any>{
 	console.log(`TEST_HARNESS: load channels`);
-	return authClient.makeRequest("channels?part=id&mine=true", tokens);
+	return authClient.makeRequest(youTubeBase + "channels?part=id&mine=true", tokens);
 }
 
 function handleChannels( channels ): string{
@@ -84,7 +86,7 @@ function clearVideoResults(){
 function loadVideos(channelId: string, pageToken?: string): Rx.Observable<any>{
 	console.log(`TEST_HARNESS: load videos for channel '${channelId}'`);
 
-	let url = "search?part=id,snippet&type=video&maxResults=50&channelId=" + channelId;
+	let url = youTubeBase + "search?part=id,snippet&type=video&maxResults=50&channelId=" + channelId;
 
 	if(pageToken){
 		url += "&pageToken=" + pageToken;
