@@ -1,4 +1,7 @@
 # GoogleOAuthServer
+
+[![Known Vulnerabilities](https://snyk.io/test/github/roaders/googleoauthserver/badge.svg)](https://snyk.io/test/github/roaders/googleoauthserver)
+
 OAuth server to allow authentication with google
 
 This node server in this project provides the following:
