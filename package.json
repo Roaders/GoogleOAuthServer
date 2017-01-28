@@ -45,7 +45,7 @@
   "homepage": "https://github.com/Roaders/GoogleOAuthServer#readme",
   "dependencies": {
     "cors": "^2.8.1",
-    "express": "^4.14.0",
+    "express": "^4.14.1",
     "mongodb": "^2.2.22",
     "node-env-file": "^0.1.8",
     "rx": "^4.1.0",
