@@ -1,5 +1,7 @@
 # GoogleOAuthServer
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/Roaders/GoogleOAuthServer.svg)](https://greenkeeper.io/)
+
 [![Known Vulnerabilities](https://snyk.io/test/github/roaders/googleoauthserver/badge.svg)](https://snyk.io/test/github/roaders/googleoauthserver)
 
 OAuth server to allow authentication with google
